@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>addToMenu</key>
+	<array>
+		<dict>
+			<key>path</key>
+			<string>ThemeManager.py</string>
+			<key>preferredName</key>
+			<string>Theme Manager...</string>
+			<key>shortKey</key>
+			<string></string>
+		</dict>
+	</array>
+	<key>developer</key>
+	<string>Connor Davenport and Andy Clymer</string>
+	<key>developerURL</key>
+	<string>http://www.connordavenport.com/ http://www.andyclymer.com/</string>
+	<key>html</key>
+	<true/>
+	<key>launchAtStartUp</key>
+	<false/>
+	<key>name</key>
+	<string>Theme Manager</string>
+	<key>requiresVersionMajor</key>
+	<string>3</string>
+	<key>requiresVersionMinor</key>
+	<string>1</string>
+	<key>timeStamp</key>
+	<real>1556912451.782722</real>
+	<key>version</key>
+	<string>0.1</string>
+</dict>
+</plist>
