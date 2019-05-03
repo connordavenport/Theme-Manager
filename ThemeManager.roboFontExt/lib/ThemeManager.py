@@ -406,6 +406,7 @@ class ThemeManager(BaseWindowController):
         self.rebuildThemeList()
         self.editName((len(self.themes) - 1), theme["themeName"])
 
+
     def duplicateTheme(self, sender):
         if self.debug: print("duplicateTheme")
         selectedIdx = self.getSelectedThemeIdx()
@@ -571,7 +572,6 @@ class ThemeManager(BaseWindowController):
             newName = self.nameSheet.name.get()
             self.themes[themeIndex]["themeName"] = newName
             self.rebuildThemeList()
-        self.w.themeList.setSelection([themeIndex])
         self.editSheetClose(None)   
                             
           
