@@ -6,5 +6,7 @@
     <string>a.glif</string>
     <key>circumflex</key>
     <string>circumflex.glif</string>
+    <key>uni0323</key>
+    <string>uni0323.glif</string>
   </dict>
 </plist>

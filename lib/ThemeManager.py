@@ -415,7 +415,7 @@ class ThemeManager(BaseWindowController):
             name = theme["themeName"]
             if name in self.themeNames:
                 i = 2
-                while name + " (%s)" % i in self.themeNames:
+                while "★ " + name + " (%s)" % i in self.themeNames:
                     i += 1
                 name = name + " (%s)" % i 
             dupeTheme["themeName"] = name
