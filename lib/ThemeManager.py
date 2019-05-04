@@ -17,7 +17,6 @@ from plistlib import readPlist, writePlist
 from defconAppKitBranch.glyphView import GlyphView
 from defconAppKit.windows.baseWindow import BaseWindowController
 
-
 # Temp name for a key to save the extension's preferences
 DEFAULTSKEY = "com.andyclymer.themeManager"
 
@@ -127,9 +126,10 @@ spaceCenterMetricsColor
 spaceCenterReverseColor
 """
  
- 
- 
- 
+"""
+todo:
+• come up with smarter duplication function
+"""
 class ThemeManager(BaseWindowController):
      
      
