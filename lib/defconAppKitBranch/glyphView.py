@@ -340,6 +340,10 @@ class DefconAppKitGlyphThemeNSView(NSView):
                 self.drawAnchors(glyph, layerName)
 
     def drawBackground(self):
+        if "glyphViewBackgroundColor" in self._theme:
+            self._backgroundColor = drawing.colorToNSColor(self._theme["glyphViewBackgroundColor"])
+        else: 
+            self._backgroundColor = NSColor.whiteColor()
         self._backgroundColor.set()
         NSRectFill(self.bounds())
 

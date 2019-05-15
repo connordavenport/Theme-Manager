@@ -77,6 +77,8 @@ THEMEKEYS = [
     ("glyphViewPointIndexColor", "Point Index Text Color", tuple),
     ("glyphViewEchoStrokeColor", "Echo Path Stroke Color", tuple)]
 
+NONCOLORKEYS = [k for k in THEMEKEYS if not k[2] == tuple]
+
 """
 Other theme preferences, for the future:
      
@@ -160,16 +162,25 @@ class ThemeManager(BaseWindowController):
             doubleClickCallback=self.listDoubleClickCallback,
             allowsMultipleSelection = False)
         # Editing list
+        extrasHeight = len(NONCOLORKEYS) * 25 + 5
         columnDescriptions = [
             dict(title="Color", key="color", cell=RFColorCell.alloc().initWithDoubleClickCallack_(self.colorDoubleClickCallback), width=90),
             dict(title="Attribute", key="name")]
-        self.w.editingList = vanilla.List((mid+20, 20, 480, -20), [], 
+        self.w.editingList = vanilla.List((mid+20, 20, 480, -extrasHeight-20), [], 
             columnDescriptions=columnDescriptions, 
             allowsEmptySelection=False, 
             allowsMultipleSelection=False, 
             enableTypingSensitivity=True, 
             rowHeight=20, 
             allowsSorting=False)
+        # Extra values for editing
+        self.w.editingExtras = vanilla.Group((mid+20, -extrasHeight-10, -20, -20))
+        for i, extra in enumerate(NONCOLORKEYS):
+            extraKey, extraName, extraType = extra
+            extraEditor = vanilla.EditText((20, i*25, 50, 20), sizeStyle="small", callback=self.setThemeExtra)
+            extraTitle = vanilla.TextBox((95, i*25, -20, 20), extraName)
+            setattr(self.w.editingExtras, extraKey, extraEditor)
+            setattr(self.w.editingExtras, extraKey + "-title", extraTitle)
         # Buttons
         y = 200
         self.w.buttonNewTheme = vanilla.SquareButton((20, y, 31, 25), "✚", callback=self.newThemeCallback) # ⌫✕✖︎✗✘★✚
@@ -230,8 +241,12 @@ class ThemeManager(BaseWindowController):
                         'name'  : name,
                         'nameKey' : nameKey}
                 listItems.append(listItem)
+            else:
+                value = theme[nameKey]
+                extraEditor = getattr(self.w.editingExtras, nameKey)
+                extraEditor.set(value)
         self.w.editingList.set(listItems)
-
+            
 
     def getSelectedColorItem(self):
         # Get the selected item from the editingList
@@ -277,6 +292,21 @@ class ThemeManager(BaseWindowController):
             else:
                 self.showMessage("Sorry!","You can't edit the default themes.\nIf you'd like to make changes to this theme,\nyou can duplicate '❏' it and edit that theme.") #🤷‍♂️
 
+     
+    def setThemeExtra(self, sender):
+        selectedIdx = self.getSelectedThemeIdx()
+        if not selectedIdx == None:
+            theme = self.themes[selectedIdx]
+            for extra in NONCOLORKEYS:
+                extraKey, extraName, extraType = extra
+                extraEditor = getattr(self.w.editingExtras, extraKey)
+                extraValue = extraEditor.get()
+                try:
+                    extraValue = extraType(extraValue)
+                    theme[extraKey] = extraValue
+                except: pass
+        # Update
+        self.listSelectionCallback(None)
      
      
     # Interface Callbacks
@@ -531,6 +561,10 @@ class ThemeManager(BaseWindowController):
             self.w.previewGlyphView.setTheme(theme)
             self.setEditingList(theme)
             self.w.editingList.enable(True)
+            for extra in NONCOLORKEYS:
+                extraKey, extraName, extraType = extra
+                extraEditor = getattr(self.w.editingExtras, extraKey)
+                extraEditor.enable(True)
         else:
             # Nothing was selected, clear out the temp theme namer
             self.w.previewGlyphView.setTheme(self.backupTheme)
@@ -541,6 +575,10 @@ class ThemeManager(BaseWindowController):
             self.w.buttonRemoveTheme.enable(False)
             self.setEditingList(self.backupTheme)
             self.w.editingList.enable(False)
+            for extra in NONCOLORKEYS:
+                extraKey, extraName, extraType = extra
+                extraEditor = getattr(self.w.editingExtras, extraKey)
+                extraEditor.enable(False)
 
      
     # Edit name sheet
