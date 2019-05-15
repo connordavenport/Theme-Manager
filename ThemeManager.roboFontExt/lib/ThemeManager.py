@@ -555,16 +555,22 @@ class ThemeManager(BaseWindowController):
             theme = self.themes[selectedIdx]
             if theme["themeType"] == "User":
                 self.w.buttonRemoveTheme.enable(True)
-            else: self.w.buttonRemoveTheme.enable(False)
+                for extra in NONCOLORKEYS:
+                    extraKey, extraName, extraType = extra
+                    extraEditor = getattr(self.w.editingExtras, extraKey)
+                    extraEditor.enable(True)
+            else:
+                self.w.buttonRemoveTheme.enable(False)
+                for extra in NONCOLORKEYS:
+                    extraKey, extraName, extraType = extra
+                    extraEditor = getattr(self.w.editingExtras, extraKey)
+                    print("here")
+                    extraEditor.enable(False)
             # Using this index, get the theme name out of the self.themes list
             theme = self.themes[selectedIdx]
             self.w.previewGlyphView.setTheme(theme)
             self.setEditingList(theme)
             self.w.editingList.enable(True)
-            for extra in NONCOLORKEYS:
-                extraKey, extraName, extraType = extra
-                extraEditor = getattr(self.w.editingExtras, extraKey)
-                extraEditor.enable(True)
         else:
             # Nothing was selected, clear out the temp theme namer
             self.w.previewGlyphView.setTheme(self.backupTheme)
