@@ -132,6 +132,7 @@ spaceCenterReverseColor
 todo:
 • come up with smarter duplication function
 """
+
 class ThemeManager(BaseWindowController):
      
      
