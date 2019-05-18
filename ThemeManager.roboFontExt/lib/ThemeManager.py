@@ -564,7 +564,6 @@ class ThemeManager(BaseWindowController):
                 for extra in NONCOLORKEYS:
                     extraKey, extraName, extraType = extra
                     extraEditor = getattr(self.w.editingExtras, extraKey)
-                    print("here")
                     extraEditor.enable(False)
             # Using this index, get the theme name out of the self.themes list
             theme = self.themes[selectedIdx]
