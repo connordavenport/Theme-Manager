@@ -215,7 +215,7 @@
 		<real>1.0</real>
 	</array>
 	<key>glyphViewOffCurvePointsSize</key>
-	<real>2.5</real>
+	<real>3</real>
 	<key>glyphViewOffCurvePointsStroke</key>
 	<array>
 		<real>1.0</real>
