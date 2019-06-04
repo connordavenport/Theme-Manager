@@ -164,8 +164,11 @@ class ThemeManager(BaseWindowController):
             allowsMultipleSelection = False)
         # Editing list
         extrasHeight = len(NONCOLORKEYS) * 25 + 5
+        try:
+            colorCell = RFColorCell.alloc().initWithDoubleClickCallback_(self.colorDoubleClickCallback)
+        except: colorCell = RFColorCell.alloc().initWithDoubleClickCallack_(self.colorDoubleClickCallback)
         columnDescriptions = [
-            dict(title="Color", key="color", cell=RFColorCell.alloc().initWithDoubleClickCallack_(self.colorDoubleClickCallback), width=90),
+            dict(title="Color", key="color", cell=colorCell, width=90),
             dict(title="Attribute", key="name")]
         self.w.editingList = vanilla.List((mid+20, 20, 480, -extrasHeight-20), [], 
             columnDescriptions=columnDescriptions, 
