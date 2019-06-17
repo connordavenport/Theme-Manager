@@ -1,9 +1,7 @@
 # RoboFont Theme Manager
 
-Theme Manager is a RoboFont extension for reading, writing, and storing custom roboFontTheme files. The current build is for beta testing purposes only.
+Theme Manager is a RoboFont extension for reading, writing, and storing custom roboFontTheme files.
 
-by Connor Davenport and Andy Clymer
-www.connordavenport.com/
-www.andyclymer.com/
+by [Connor Davenport](www.connordavenport.com) and [Andy Clymer](www.andyclymer.com)
 
 ![Screenshot](/resources/ScreenShot.png)
