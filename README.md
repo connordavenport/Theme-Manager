@@ -5,3 +5,5 @@ Theme Manager is a RoboFont extension for reading, writing, and storing custom r
 by Connor Davenport and Andy Clymer
 www.connordavenport.com/
 www.andyclymer.com/
+
+![Screenshot](/resources/ScreenShot.png)
