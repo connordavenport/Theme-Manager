@@ -131,6 +131,11 @@ spaceCenterReverseColor
 """
 todo:
 • come up with smarter duplication function
+• add markColor palettes to the themes 
+    • read through the nested xml, find the actual colors that arent 
+    in the current preferences and append those? Or we can just completely 
+    replace the current colors?
+
 """
 
 class ThemeManager(BaseWindowController):
