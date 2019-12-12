@@ -130,7 +130,12 @@ spaceCenterReverseColor
  
 """
 todo:
-• come up with smarter duplication function
+@@@ come up with smarter duplication function
+@@@ add licenses to all themes? @antonio
+@@@ right now we have it so the file is invalid if the THEMEKEYS key is in themeData, but should
+    we reverse that since new themes might be missing some keys. we would also need to 
+    re-write *def setEditingList()* so that it builds the list from the selected theme and not
+    the THEMEKEYS.
 """
 
 class ThemeManager(BaseWindowController):
