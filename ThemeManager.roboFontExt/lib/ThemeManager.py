@@ -130,7 +130,12 @@ spaceCenterReverseColor
  
 """
 todo:
-• come up with smarter duplication function
+@@@ come up with smarter duplication function
+@@@ add licenses to all themes? @antonio
+@@@ right now we have it so the file is invalid if the THEMEKEYS key is in themeData, but should
+    we reverse that since new themes might be missing some keys. we would also need to 
+    re-write *def setEditingList()* so that it builds the list from the selected theme and not
+    the THEMEKEYS.
 """
 
 class ThemeManager(BaseWindowController):
@@ -164,9 +169,7 @@ class ThemeManager(BaseWindowController):
             allowsMultipleSelection = False)
         # Editing list
         extrasHeight = len(NONCOLORKEYS) * 25 + 5
-        try:
-            colorCell = RFColorCell.alloc().initWithDoubleClickCallback_(self.colorDoubleClickCallback)
-        except: colorCell = RFColorCell.alloc().initWithDoubleClickCallack_(self.colorDoubleClickCallback)
+        colorCell = RFColorCell.alloc().init()
         columnDescriptions = [
             dict(title="Color", key="color", cell=colorCell, width=90),
             dict(title="Attribute", key="name")]
@@ -176,7 +179,8 @@ class ThemeManager(BaseWindowController):
             allowsMultipleSelection=False, 
             enableTypingSensitivity=True, 
             rowHeight=20, 
-            allowsSorting=False)
+            allowsSorting=False,
+            doubleClickCallback=self.colorDoubleClickCallback)
         # Extra values for editing
         self.w.editingExtras = vanilla.Group((mid+20, -extrasHeight-10, -20, -20))
         for i, extra in enumerate(NONCOLORKEYS):
