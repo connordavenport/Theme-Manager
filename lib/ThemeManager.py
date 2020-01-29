@@ -126,6 +126,16 @@ spaceCenterInputSelectionColor
 spaceCenterMarginsColor
 spaceCenterMetricsColor
 spaceCenterReverseColor
+
+glyphCellChangedColor
+glyphCellChangedHighlightColor
+glyphCellGlyphColor
+glyphCellGlyphLayerDefaultColor
+glyphCellHeaderColor
+glyphCellHeaderHightlightColor
+glyphCellMetricsColor
+glyphCellMetricsLineColor
+glyphCellTextColor
 """
  
 """
