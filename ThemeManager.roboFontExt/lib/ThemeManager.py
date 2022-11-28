@@ -383,7 +383,7 @@ class ThemeManager(BaseWindowController):
                     themeCopy[k] = v
                 themeCopy["themeName"] = str(theme["themeName"])
                 themeCopy["themeType"] = "User"
-                with open(plistPath, "w") as themeFile:
+                with open(plistPath, "wb") as themeFile:
                     plistlib.dump(themeCopy, themeFile)
 
     def applyThemeCallback(self, sender):
