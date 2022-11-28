@@ -1,6 +1,6 @@
 from AppKit import *
 import os
- 
+
 import vanilla
 from mojo.UI import GetFile, PutFile
 from mojo.UI import getDefault, setDefault
@@ -9,10 +9,10 @@ from mojo.roboFont import OpenWindow
 
 from lib.tools.notifications import PostNotification
 from lib.cells.colorCell import RFPopupColorPanel, RFColorCell
-from lib.tools.misc import NSColorToRgba 
- 
-from plistlib import readPlist, writePlist
- 
+from lib.tools.misc import NSColorToRgba
+
+import plistlib
+
 # Our own branch of the defconAppKit GlyphView
 from defconAppKitBranch.glyphView import GlyphView
 from defconAppKit.windows.baseWindow import BaseWindowController
@@ -21,11 +21,11 @@ from defconAppKit.windows.baseWindow import BaseWindowController
 DEFAULTSKEY = "com.andyclymer.themeManager"
 
 EXTENSIONBUNDLE = ExtensionBundle("ThemeManager")
- 
+
 # Preference keys and names for the theme settings
 THEMEKEYS = [
     ("glyphViewOncurvePointsSize", "Oncurve Size", float),
-    ("glyphViewOffCurvePointsSize", "Offcurve Size", float), 
+    ("glyphViewOffCurvePointsSize", "Offcurve Size", float),
     ("glyphViewStrokeWidth", "Glyph Stroke Width", int),
     ("glyphViewSelectionStrokeWidth", "Selection Stroke Width", int),
     ("glyphViewHandlesStrokeWidth", "Handle stroke width", int),
@@ -81,7 +81,7 @@ NONCOLORKEYS = [k for k in THEMEKEYS if not k[2] == tuple]
 
 """
 Other theme preferences, for the future:
-     
+
 DebuggerBackgroundColor
 DebuggerTextColor
 PyDEBackgroundColor
@@ -117,7 +117,7 @@ PyDETokenColors
     Operator.Word
     Punctuation
     Text
- 
+
 spaceCenterBackgroundColor
 spaceCenterBeamStrokeColor
 spaceCenterGlyphColor
@@ -127,24 +127,24 @@ spaceCenterMarginsColor
 spaceCenterMetricsColor
 spaceCenterReverseColor
 """
- 
+
 """
 todo:
 @@@ come up with smarter duplication function
 @@@ add licenses to all themes? @antonio
 @@@ right now we have it so the file is invalid if the THEMEKEYS key is in themeData, but should
-    we reverse that since new themes might be missing some keys. we would also need to 
+    we reverse that since new themes might be missing some keys. we would also need to
     re-write *def setEditingList()* so that it builds the list from the selected theme and not
     the THEMEKEYS.
 """
 
 class ThemeManager(BaseWindowController):
-     
-     
+
+
     def __init__(self):
-         
+
         self.debug = False
-        
+
         # List of theme data dictionaries
         self.themes = []
         # On launch: go ahead and start loading themes
@@ -155,10 +155,10 @@ class ThemeManager(BaseWindowController):
         self.makeBackupTheme()
         # Build the list of theme names
         self.themeNames = []
-         
+
         # Placeholder for the name edit sheet
         self.nameSheet = None
-         
+
         mid = 280
         # The Vanilla window
         self.w = vanilla.Window((300, 560), "Theme Manager")
@@ -173,12 +173,12 @@ class ThemeManager(BaseWindowController):
         columnDescriptions = [
             dict(title="Color", key="color", cell=colorCell, width=90),
             dict(title="Attribute", key="name")]
-        self.w.editingList = vanilla.List((mid+20, 20, 480, -extrasHeight-20), [], 
-            columnDescriptions=columnDescriptions, 
-            allowsEmptySelection=False, 
-            allowsMultipleSelection=False, 
-            enableTypingSensitivity=True, 
-            rowHeight=20, 
+        self.w.editingList = vanilla.List((mid+20, 20, 480, -extrasHeight-20), [],
+            columnDescriptions=columnDescriptions,
+            allowsEmptySelection=False,
+            allowsMultipleSelection=False,
+            enableTypingSensitivity=True,
+            rowHeight=20,
             allowsSorting=False,
             doubleClickCallback=self.colorDoubleClickCallback)
         # Extra values for editing
@@ -199,10 +199,10 @@ class ThemeManager(BaseWindowController):
         self.w.buttonDuplicateTheme.getNSButton().setToolTip_("Duplicate Theme")
         self.w.buttonEditTheme = vanilla.SquareButton((250, y, 30, 25), "✑", callback=self.editThemeCallback)
         self.w.buttonEditTheme.getNSButton().setToolTip_("Edit Theme")
-        
+
         self.w.buttonImport = vanilla.SquareButton((120, y, 61, 25), "Import", callback=self.importThemeCallback)
         self.w.buttonExport = vanilla.SquareButton((180, y, 60, 25), "Export", callback=self.exportThemeCallback)
-        
+
         self.w.buttonDuplicateTheme.enable(False)
         self.w.buttonRemoveTheme.enable(False)
         # Preview
@@ -220,12 +220,12 @@ class ThemeManager(BaseWindowController):
         self.w.buttonUndo.enable(False)
         # Give the window a callback to call when the window closes
         self.w.bind("close", self.windowClosedCallback)
-         
+
         # Open the window
         self.w.open()
-        
+
         self.rebuildThemeList(setList=True)
-        
+
         # Load the preview font
         previewFontPath = os.path.join(EXTENSIONBUNDLE.resourcesPath(), "GlyphPreview.ufo")
         previewFont = OpenFont(previewFontPath, showInterface=False)
@@ -235,7 +235,7 @@ class ThemeManager(BaseWindowController):
 
     # Helpers
 
-    # ===== 
+    # =====
 
     def setEditingList(self, theme):
         # Collect the theme data for the selected theme and set it to the editingList
@@ -254,7 +254,7 @@ class ThemeManager(BaseWindowController):
                 extraEditor = getattr(self.w.editingExtras, nameKey)
                 extraEditor.set(value)
         self.w.editingList.set(listItems)
-            
+
 
     def getSelectedColorItem(self):
         # Get the selected item from the editingList
@@ -262,7 +262,7 @@ class ThemeManager(BaseWindowController):
         if len(items):
             i = self.w.editingList.getSelection()[0]
             return items[i]
-            
+
 
     def getSelectedThemeIdx(self):
         # Return the index of the selected theme, or None if there's no selection
@@ -276,9 +276,9 @@ class ThemeManager(BaseWindowController):
 
 
     # Theme editing callbacks
-    
+
     def setColor_(self, sender):
-        item = self.getSelectedColorItem()        
+        item = self.getSelectedColorItem()
         item['color'] = sender.color()
         selectedIdx = self.getSelectedThemeIdx()
         if not selectedIdx == None:
@@ -300,7 +300,7 @@ class ThemeManager(BaseWindowController):
             else:
                 self.showMessage("Sorry!","You can't edit the default themes.\nIf you'd like to make changes to this theme,\nyou can duplicate '❏' it and edit that theme.") #🤷‍♂️
 
-     
+
     def setThemeExtra(self, sender):
         selectedIdx = self.getSelectedThemeIdx()
         if not selectedIdx == None:
@@ -315,10 +315,10 @@ class ThemeManager(BaseWindowController):
                 except: pass
         # Update
         self.listSelectionCallback(None)
-     
-     
+
+
     # Interface Callbacks
-     
+
     def windowClosedCallback(self, sender):
         if self.debug: print("windowClosedCallback")
         # The window is closing, save the themes into the extension preferenes using setExtensionDefault()
@@ -328,14 +328,14 @@ class ThemeManager(BaseWindowController):
             if theme["themeType"] == "User":
                 themesToSave += [theme]
         setExtensionDefault(DEFAULTSKEY, themesToSave)
-        
- 
+
+
     def undoThemeCallback(self, sender):
         if self.debug: print("undoThemeCallback")
         # Apply the backed up theme
         self._applyTheme(self.backupTheme)
-        
- 
+
+
     def importThemeCallback(self, sender):
         if self.debug: print("importThemeCallback")
         # Callback from the "Import" button
@@ -344,7 +344,8 @@ class ThemeManager(BaseWindowController):
         # If they did choose a path, save it.
         # If they clicked cancel, there would be no path.
         if path:
-            themeData = readPlist(path)
+            with open(path, "rb") as themeFile:
+                themeData = plistlib.load(themeFile)
             # Validate the themeData
             valid = True
             for key, name, valueType in THEMEKEYS:
@@ -356,7 +357,7 @@ class ThemeManager(BaseWindowController):
             else:
                 NSBeep()
                 self.showMessage("Sorry!", "This is an invalid theme file.")
- 
+
 
     def exportThemeCallback(self, sender):
         if self.debug: print("exportThemeCallback")
@@ -382,9 +383,9 @@ class ThemeManager(BaseWindowController):
                     themeCopy[k] = v
                 themeCopy["themeName"] = str(theme["themeName"])
                 themeCopy["themeType"] = "User"
-                writePlist(themeCopy, path)
-                     
-         
+                with open(plistPath, "w") as themeFile:
+                    plistlib.dump(themeCopy, themeFile)
+
     def applyThemeCallback(self, sender):
         if self.debug: print("applyThemeCallback")
         # Callback from the "Apply Theme" button
@@ -395,14 +396,14 @@ class ThemeManager(BaseWindowController):
             theme = self.themes[selectedIdx]
             self._applyTheme(theme)
         self.w.buttonUndo.enable(True)
-        
-         
+
+
     def _applyTheme(self, theme):
         # Do the actual applying of the theme
         for key, val in theme.items():
             setDefault(key, val)
         PostNotification("doodle.preferencesChanged")
- 
+
     def removeThemeCallback(self, sender):
         if self.debug: print("removeThemeCallback")
         # Callback from the "Remove" button
@@ -413,8 +414,8 @@ class ThemeManager(BaseWindowController):
             if theme["themeType"] == "User":
                 del(self.themes[selectedIdx])
                 self.rebuildThemeList()
- 
- 
+
+
     def newThemeCallback(self, sender):
         if self.debug: print("newThemeCallback")
         # Callback from the "New" button
@@ -434,7 +435,7 @@ class ThemeManager(BaseWindowController):
         length = len(new) + 1
         if name in self.themeNames:
             newName = name.replace("★ ", "")
-            themeName = newName + " (%s)" % length 
+            themeName = newName + " (%s)" % length
             theme["themeName"] = themeName
             theme["themeType"] = "User" # User or Default
         else:
@@ -455,13 +456,13 @@ class ThemeManager(BaseWindowController):
                 i = 2
                 while "★ " + name + " (%s)" % i in self.themeNames:
                     i += 1
-                name = name + " (%s)" % i 
+                name = name + " (%s)" % i
             dupeTheme["themeName"] = name
             dupeTheme["themeType"] = "User"
         self.themes += [dupeTheme]
         self.rebuildThemeList()
-        
-     
+
+
     def listSelectionCallback(self, sender):
         if self.debug: print("listSelectionCallback")
         # Callback when the selection in the Vanlla List changed
@@ -470,8 +471,8 @@ class ThemeManager(BaseWindowController):
         # The selection is a list of indices, because more than one thing could be selected
         # Just call the updatePrewview function and it will handle the rest
         self.updatePreview(selectedIdx)
-     
-     
+
+
     def listDoubleClickCallback(self, sender):
         if self.debug: print("listDoubleClickCallback")
         # Callback when the list of themes is double-clicked
@@ -482,8 +483,8 @@ class ThemeManager(BaseWindowController):
             theme = self.themes[selectedIdx]
             if theme["themeType"] == "User":
                 self.editName(selectedIdx, theme["themeName"])
-     
-     
+
+
     def editThemeCallback(self, sender):
         # Open/close the theme editor
         winX, winY, width, height = self.w.getPosSize()
@@ -491,11 +492,11 @@ class ThemeManager(BaseWindowController):
             newWidth = 800
         else: newWidth = 300
         self.w.setPosSize((winX, winY, newWidth, height))
-         
-         
+
+
     # Functions when the extension launches
-    
-     
+
+
     def readThemePrefs(self):
         if self.debug: print("readThemePrefs")
         # Use getExtensionDefault() to read out all of the saved themes
@@ -504,8 +505,8 @@ class ThemeManager(BaseWindowController):
             # Copy each theme into the self.themes dictionary
             for theme in savedThemes:
                 self.themes += [theme]
-                
-     
+
+
     def loadDefaultThemes(self):
         if self.debug: print("loadDefaultThemes")
         # Use the readThemePlist() function to load all of the curated themes out of a folder that lives in this roboFontExt
@@ -514,12 +515,13 @@ class ThemeManager(BaseWindowController):
             name, ext = os.path.splitext(fileName)
             if ext == ".roboFontTheme":
                 plistPath = os.path.join(presetFolder, fileName)
-                themeData = readPlist(plistPath)
+                with open(plistPath, "rb") as themeFile:
+                    themeData = plistlib.load(themeFile)
                 # Make sure that it's flagged as a default theme
                 themeData["themeType"] = "Default"
                 self.themes += [themeData]
-     
-     
+
+
     def rebuildThemeList(self, setList=True):
         if self.debug: print("rebuildThemeList")
         # Rebuid the list in the interface, after loading/adding/deleting themes
@@ -534,8 +536,8 @@ class ThemeManager(BaseWindowController):
         if setList:
             self.w.themeList.set(self.themeNames)
         self.w.themeList.setSelection([])
-         
-         
+
+
     def makeBackupTheme(self):
         if self.debug: print("makeBackupTheme")
         # Make a backup of the current user prefs
@@ -547,10 +549,10 @@ class ThemeManager(BaseWindowController):
 
 
     # Theme preview
-    
-     
+
+
     def updatePreview(self, selectedIdx):
-        if self.debug: print("updatePreview")        
+        if self.debug: print("updatePreview")
         # Update the preview drawing to use the colors of the selected theme in the list
         # The selection is a list, because the way a vanilla list works sometimes is that more than one thing can be selected
         if not selectedIdx == None:
@@ -593,10 +595,10 @@ class ThemeManager(BaseWindowController):
                 extraEditor = getattr(self.w.editingExtras, extraKey)
                 extraEditor.enable(False)
 
-     
+
     # Edit name sheet
-     
-     
+
+
     def editName(self, index, name):
         # Make a new vanilla "sheet" with controls for editing the name of the theme
         self.nameSheet = vanilla.Sheet((200, 110), self.w)
@@ -606,15 +608,15 @@ class ThemeManager(BaseWindowController):
         self.nameSheet.cancelButton = vanilla.Button((10, -35, 95, 25), "Cancel", callback=self.editSheetClose)
         self.nameSheet.okButton = vanilla.Button((115, -35, -10, 25), "OK", callback=self.editSheetOKCallback)
         self.nameSheet.open()
-     
-     
+
+
     def editSheetClose(self, sender):
         # Callback to close the sheet
         if self.nameSheet:
             self.nameSheet.close()
             self.nameSheet = None
-     
-     
+
+
     def editSheetOKCallback(self, sender):
         # Callback when clicking "OK" in the Edit Name sheet
         if self.nameSheet:
@@ -623,7 +625,7 @@ class ThemeManager(BaseWindowController):
             self.themes[themeIndex]["themeName"] = newName
             self.rebuildThemeList()
         self.w.themeList.setSelection([themeIndex])
-        self.editSheetClose(None)   
-                            
-          
+        self.editSheetClose(None)
+
+
 OpenWindow(ThemeManager)
