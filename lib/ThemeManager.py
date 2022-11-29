@@ -75,7 +75,30 @@ THEMEKEYS = [
     ("glyphViewContourIndexColor", "Contour Index Text Color", tuple),
     ("glyphViewSegmentIndexColor", "Segment Index Text Color", tuple),
     ("glyphViewPointIndexColor", "Point Index Text Color", tuple),
-    ("glyphViewEchoStrokeColor", "Echo Path Stroke Color", tuple)]
+    ("glyphViewEchoStrokeColor", "Echo Path Stroke Color", tuple),]
+
+    # ("glypHCellHeaderLineColor", "Header line separator color", tuple),
+    # ("glyphCellAlternateTextColor", "Alternative text color", tuple),
+    # ("glyphCellBackgroundColor", "Background color", tuple),
+    # ("glyphCellChangedColor", "Glyph changed color", tuple),
+    # ("glyphCellChangedHighlightColor", "Glyph changed highlight color", tuple),
+    # ("glyphCellGlyphColor", "Glyph color", tuple),
+    # ("glyphCellGlyphLayerDefaultColor", "Default glyph layer color", tuple),
+    # ("glyphCellHeaderColor", "Header color", tuple),
+    # ("glyphCellHeaderHighlightColor", "Header highlight color", tuple),
+    # ("glyphCellLayerIndicatorColor", "Layer indicator color", tuple),
+    # ("glyphCellMetricsColor", "Metrics color", tuple),
+    # ("glyphCellMetricsLineColor", "Metrics line color", tuple),
+    # ("glyphCellNoteIndicatorColor", "Note indicator color", tuple),
+    # ("glyphCellSkipExportIndicatorColor", "Skip glyph export indicator color", tuple),
+    # ("glyphCellTemplateGlyphBackgroundColor", "Template glyph cell background color", tuple),
+    # ("glyphCellTemplateGlyphTextColor", "Template text color", tuple),
+    # ("glyphCellTemplateGlyphTextShadowColor", "Template text shadow color", tuple),
+    # ("glyphCellTextColor", "Text color", tuple),
+    # ("glyphCollectionBackgroundColor", "Collection background color", tuple),
+    # ("glyphCollectionGridColor", "Collection grid color", tuple),
+    # ("glyphCollectionInsertionLocationColor", "Insertion location color", tuple),
+    # ("glyphCollectionInsertionLocationShadowColor", "Insertion location shadow color", tuple),]
 
 NONCOLORKEYS = [k for k in THEMEKEYS if not k[2] == tuple]
 
