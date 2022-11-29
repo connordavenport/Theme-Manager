@@ -182,7 +182,7 @@ class ThemeManager(BaseWindowController):
             allowsSorting=False,
             doubleClickCallback=self.colorDoubleClickCallback)
         # Extra values for editing
-        self.w.editingExtras = vanilla.Group((mid+20, -extrasHeight-10, -20, -20))
+        self.w.editingExtras = vanilla.Group((mid+20, -extrasHeight-10, 480, -20))
         for i, extra in enumerate(NONCOLORKEYS):
             extraKey, extraName, extraType = extra
             extraEditor = vanilla.EditText((20, i*25, 50, 20), sizeStyle="small", callback=self.setThemeExtra)
