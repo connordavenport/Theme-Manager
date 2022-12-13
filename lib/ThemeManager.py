@@ -42,15 +42,15 @@ THEMEKEYS = [
     ("glyphViewTangentPointsFill", "Tangent Fill Color", tuple),
     ("glyphViewTangentPointsStroke", "Tangent Stroke Color", tuple),
     ("glyphViewOffCurvePointsFill", "Offcurve Fill Color", tuple),
-    ("glyphViewOffCurvePointsStroke", "Offcurve Stroke Color (Cubic Beziers, PostScript)", tuple),
+    ("glyphViewOffCurveCubicPointsStroke", "Offcurve Stroke Color (Cubic Beziers, PostScript)", tuple),
     ("glyphViewOffCurveQuadPointsStroke", "Offcurve Stroke Color (Quadratic Beziers, TrueType)", tuple),
     ("glyphViewSmoothPointStroke", "Smooth Point Color", tuple),
     ("glyphViewComponentFillColor", "Component Fill Color", tuple),
     ("glyphViewComponentStrokeColor", "Component Stroke Color", tuple),
     ("glyphViewComponentInfoColor", "Component Info Text Color", tuple),
     ("glyphViewImageInfoColor", "Image Info Text Color", tuple),
-    ("glyphViewHandlesStrokeColor", "Handle Stroke Color (Cubic Beziers, PostScript)", tuple),
-    ("glyphViewHandlesQuadStrokeColor", "Handle Stroke Color (Quadratic Beziers, TrueType)", tuple),
+    ("glyphViewCubicHandlesStrokeColor", "Handle Stroke Color (Cubic Beziers, PostScript)", tuple),
+    ("glyphViewQuadraticHandlesStrokeColor", "Handle Stroke Color (Quadratic Beziers, TrueType)", tuple),
     ("glyphViewStartPointsArrowColor", "Start Point Arrow Color for closed contour", tuple),
     ("glyphViewOpenStartPointsArrowColor", "Start Point Arrow Color for an open contour", tuple),
     ("glyphViewSelectionColor", "Selection Color", tuple),
@@ -64,13 +64,13 @@ THEMEKEYS = [
     ("glyphViewAnchorColor", "Anchor Color", tuple),
     ("glyphViewAnchorTextColor", "Anchor Text Color", tuple),
     ("glyphViewMarginColor", "Margins Background Color", tuple),
-    ("glyphViewMetricsColor", "Vertical Metrics Color", tuple),
+    ("glyphViewFontMetricsStrokeColor", "Vertical Metrics Color", tuple),
     ("glyphViewMetricsTitlesColor", "Vertical Metrics Titles Color", tuple),
     ("glyphViewGridColor", "Grid Color", tuple),
     ("glyphViewBitmapColor", "Bitmap Color", tuple),
     ("glyphViewOutlineErrorsColor", "Line Straightness Indicator Color", tuple),
     ("glyphViewMeasurementsTextColor", "Measurements Text Color", tuple),
-    ("glyphViewMeasurementsForgroundColor", "Measurements Line Color", tuple),
+    ("glyphViewMeasurementsForegroundColor", "Measurements Line Color", tuple),
     ("glyphViewMeasurementsBackgroundColor", "Measurements Secondary Line Color", tuple),
     ("glyphViewContourIndexColor", "Contour Index Text Color", tuple),
     ("glyphViewSegmentIndexColor", "Segment Index Text Color", tuple),
@@ -241,13 +241,14 @@ class ThemeManager(BaseWindowController):
         # Collect the theme data for the selected theme and set it to the editingList
         if self.debug: print("setEditingList")
         listItems = []
+        fallbackColor = [.5, .5, .5, .5]
         for nameKey, name, valueType in THEMEKEYS:
             if valueType == tuple:
-                color = theme[nameKey]
+                color = theme.get(nameKey, fallbackColor)
                 listItem = {
-                        'color' : NSColor.colorWithCalibratedRed_green_blue_alpha_(*color),
-                        'name'  : name,
-                        'nameKey' : nameKey}
+                    'color': NSColor.colorWithCalibratedRed_green_blue_alpha_(*color),
+                    'name': name,
+                    'nameKey': nameKey}
                 listItems.append(listItem)
             else:
                 value = theme[nameKey]
