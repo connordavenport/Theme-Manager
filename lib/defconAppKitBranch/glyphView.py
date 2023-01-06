@@ -50,6 +50,7 @@ class DefconAppKitGlyphThemeNSView(NSView):
         self._verticalCenterYBuffer = 100
 
         self._backgroundColor = NSColor.whiteColor()
+        self._fallbackColor = [.5, .5, .5, .5]
 
         return self
 
@@ -158,7 +159,7 @@ class DefconAppKitGlyphThemeNSView(NSView):
     # ---------------
     # Display Control
     # ---------------
-    
+
     @python_method
     def setTheme(self, theme):
         self._theme = theme
@@ -280,7 +281,7 @@ class DefconAppKitGlyphThemeNSView(NSView):
 
         yOffset = self._verticalCenterYBuffer * self._inverseScale
         yOffset -= self._descender
-        
+
         # @@@
         yOffset -= 270
         xOffset += 130
@@ -342,7 +343,7 @@ class DefconAppKitGlyphThemeNSView(NSView):
     def drawBackground(self):
         if "glyphViewBackgroundColor" in self._theme:
             self._backgroundColor = drawing.colorToNSColor(self._theme["glyphViewBackgroundColor"])
-        else: 
+        else:
             self._backgroundColor = NSColor.whiteColor()
         self._backgroundColor.set()
         NSRectFill(self.bounds())
@@ -365,14 +366,16 @@ class DefconAppKitGlyphThemeNSView(NSView):
 
     @python_method
     def drawVerticalMetrics(self, glyph, layerName):
-        colorMetrics = drawing.colorToNSColor(self._theme["glyphViewMetricsColor"])
-        colorMetricsTitles = drawing.colorToNSColor(self._theme["glyphViewMetricsTitlesColor"])
+        colorMetrics = drawing.colorToNSColor(
+            self._theme.get("glyphViewFontMetricsStrokeColor", self._fallbackColor))
+        colorMetricsTitles = drawing.colorToNSColor(
+            self._theme.get("glyphViewMetricsTitlesColor", self._fallbackColor))
         backgroundColor = drawing.colorToNSColor(self._theme["glyphViewBackgroundColor"])
         drawText = self.getDrawingAttribute_layerName_("showFontVerticalMetricsTitles", layerName) and self._impliedPointSize > 150
         drawing.drawFontVerticalMetrics(
-            glyph, 
-            self._inverseScale, 
-            self._drawingRect, 
+            glyph,
+            self._inverseScale,
+            self._drawingRect,
             drawText=drawText,
             colorMetrics=colorMetrics,
             colorMetricsTitles=colorMetricsTitles,
@@ -383,9 +386,9 @@ class DefconAppKitGlyphThemeNSView(NSView):
         marginColor = drawing.colorToNSColor(self._theme["glyphViewMarginColor"])
         backgroundColor = drawing.colorToNSColor(self._theme["glyphViewBackgroundColor"])
         drawing.drawGlyphMargins(
-            glyph, 
-            self._inverseScale, 
-            self._drawingRect, 
+            glyph,
+            self._inverseScale,
+            self._drawingRect,
             marginColor=marginColor)
 
     @python_method
@@ -399,18 +402,18 @@ class DefconAppKitGlyphThemeNSView(NSView):
         showFill = self.getDrawingAttribute_layerName_("showGlyphFill", layerName)
         showStroke = self.getDrawingAttribute_layerName_("showGlyphStroke", layerName)
         drawing.drawGlyphFillAndStroke(
-            glyph, 
-            self._inverseScale, 
-            self._drawingRect, 
-            drawFill=showFill, 
-            drawStroke=showStroke, 
+            glyph,
+            self._inverseScale,
+            self._drawingRect,
+            drawFill=showFill,
+            drawStroke=showStroke,
             contourFillColor=contourFillColor,
             contourStrokeColor=contourStrokeColor,
             componentFillColor=componentFillColor,
             componentStrokeColor=componentStrokeColor,
             backgroundColor=backgroundColor,
             contourStrokeWidth=strokeWidth)
-            
+
 
     @python_method
     def drawPoints(self, glyph, layerName):
@@ -421,15 +424,18 @@ class DefconAppKitGlyphThemeNSView(NSView):
         colorCurvePointsFill = drawing.colorToNSColor(self._theme["glyphViewCurvePointsFill"])
         colorCurvePointsStroke = drawing.colorToNSColor(self._theme["glyphViewCurvePointsStroke"])
         colorOffCurvePointsFill = drawing.colorToNSColor(self._theme["glyphViewOffCurvePointsFill"])
-        colorOffCurvePointsStroke = drawing.colorToNSColor(self._theme["glyphViewOffCurvePointsStroke"])
+        colorOffCurvePointsStroke = drawing.colorToNSColor(
+            self._theme.get("glyphViewOffCurveCubicPointsStroke", self._fallbackColor))
         colorOffCurveQuadPointsStroke = drawing.colorToNSColor(self._theme["glyphViewOffCurveQuadPointsStroke"])
         colorSmoothPointStroke = drawing.colorToNSColor(self._theme["glyphViewSmoothPointStroke"])
         colorStartPointsArrow = drawing.colorToNSColor(self._theme["glyphViewStartPointsArrowColor"])
         colorOpenStartPointsArrow = drawing.colorToNSColor(self._theme["glyphViewOpenStartPointsArrowColor"])
         colorPointCoordinate = drawing.colorToNSColor(self._theme["glyphViewPointCoordinateColor"])
         colorPointCoordinateBackground = drawing.colorToNSColor(self._theme["glyphViewPointCoordinateBackgroundColor"])
-        colorHandlesStroke = drawing.colorToNSColor(self._theme["glyphViewHandlesStrokeColor"])
-        colorHandlesQuadStroke = drawing.colorToNSColor(self._theme["glyphViewHandlesQuadStrokeColor"])
+        colorHandlesStroke = drawing.colorToNSColor(
+            self._theme.get("glyphViewCubicHandlesStrokeColor", self._fallbackColor))
+        colorHandlesQuadStroke = drawing.colorToNSColor(
+            self._theme.get("glyphViewQuadraticHandlesStrokeColor", self._fallbackColor))
         backgroundColor = drawing.colorToNSColor(self._theme["glyphViewBackgroundColor"])
         pointSizeOffCurve = self._theme["glyphViewOffCurvePointsSize"] * 2
         pointSizeOnCurve = self._theme["glyphViewOncurvePointsSize"] * 2
@@ -438,12 +444,12 @@ class DefconAppKitGlyphThemeNSView(NSView):
         drawOffCurves = self.getDrawingAttribute_layerName_("showGlyphOffCurvePoints", layerName) and self._impliedPointSize > 175
         drawCoordinates = self.getDrawingAttribute_layerName_("showGlyphPointCoordinates", layerName) and self._impliedPointSize > 250
         drawing.drawGlyphPoints(
-            glyph, 
-            self._inverseScale, 
+            glyph,
+            self._inverseScale,
             self._drawingRect,
             drawStartPoint=drawStartPoint,
-            drawOnCurves=drawOnCurves, 
-            drawOffCurves=drawOffCurves, 
+            drawOnCurves=drawOnCurves,
+            drawOffCurves=drawOffCurves,
             drawCoordinates=drawCoordinates,
             colorCornerPointsFill=colorCornerPointsFill,
             colorCornerPointsStroke=colorCornerPointsStroke,
@@ -472,10 +478,10 @@ class DefconAppKitGlyphThemeNSView(NSView):
         backgroundColor = drawing.colorToNSColor(self._theme["glyphViewBackgroundColor"])
         drawText = self._impliedPointSize > 50
         drawing.drawGlyphAnchors(
-            glyph, 
-            self._inverseScale, 
-            self._drawingRect, 
-            drawText=drawText, 
+            glyph,
+            self._inverseScale,
+            self._drawingRect,
+            drawText=drawText,
             color=color,
             textColor=textColor,
             backgroundColor=self._backgroundColor)
@@ -641,8 +647,8 @@ class GlyphView(PlacardScrollView):
         self._subscribeToGlyph(glyph)
         self._glyphView.setGlyph_(glyph)
         self._populatePlacard()
-        
-        
+
+
     def setTheme(self, theme):
         self._glyphView.setTheme(theme)
 

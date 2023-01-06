@@ -135,14 +135,14 @@
 		<real>1.0</real>
 		<real>0.3</real>
 	</array>
-	<key>glyphViewHandlesQuadStrokeColor</key>
+	<key>glyphViewQuadraticHandlesStrokeColor</key>
 	<array>
 		<real>0.196078431373</real>
 		<real>0.392156862745</real>
 		<real>1.0</real>
 		<real>1.0</real>
 	</array>
-	<key>glyphViewHandlesStrokeColor</key>
+	<key>glyphViewCubicHandlesStrokeColor</key>
 	<array>
 		<real>0.0</real>
 		<real>0.0</real>
@@ -179,7 +179,7 @@
 		<real>0.0</real>
 		<real>0.5</real>
 	</array>
-	<key>glyphViewMeasurementsForgroundColor</key>
+	<key>glyphViewMeasurementsForegroundColor</key>
 	<array>
 		<real>0.0</real>
 		<real>1.0</real>
@@ -193,7 +193,7 @@
 		<real>0.0</real>
 		<real>1.0</real>
 	</array>
-	<key>glyphViewMetricsColor</key>
+	<key>glyphViewFontMetricsStrokeColor</key>
 	<array>
 		<real>0.0</real>
 		<real>0.0</real>
@@ -216,7 +216,7 @@
 	</array>
 	<key>glyphViewOffCurvePointsSize</key>
 	<real>3.0</real>
-	<key>glyphViewOffCurvePointsStroke</key>
+	<key>glyphViewOffCurveCubicPointsStroke</key>
 	<array>
 		<real>0.0</real>
 		<real>0.0</real>
