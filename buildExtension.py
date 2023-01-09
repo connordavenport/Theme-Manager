@@ -13,7 +13,7 @@ resourcesPath = os.path.join(basePath, "resources")
 B = ExtensionBundle()
 
 B.name = "Theme Manager"
-B.version = "1.0.5"
+B.version = "1.0.6"
 B.developer = "Connor Davenport and Andy Clymer"
 B.developerURL = 'http://www.connordavenport.com/ http://www.andyclymer.com/'
 

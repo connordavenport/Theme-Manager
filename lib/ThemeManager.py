@@ -78,6 +78,7 @@ THEMEKEYS = [
     ("glyphViewEchoStrokeColor", "Echo Path Stroke Color", tuple)]
 
 NONCOLORKEYS = [k for k in THEMEKEYS if not k[2] == tuple]
+FALLBACKCOLOR = [.5, .5, .5, .5]
 
 """
 Other theme preferences, for the future:
@@ -241,10 +242,9 @@ class ThemeManager(BaseWindowController):
         # Collect the theme data for the selected theme and set it to the editingList
         if self.debug: print("setEditingList")
         listItems = []
-        fallbackColor = [.5, .5, .5, .5]
         for nameKey, name, valueType in THEMEKEYS:
             if valueType == tuple:
-                color = theme.get(nameKey, fallbackColor)
+                color = theme.get(nameKey, FALLBACKCOLOR)
                 listItem = {
                     'color': NSColor.colorWithCalibratedRed_green_blue_alpha_(*color),
                     'name': name,
@@ -380,11 +380,14 @@ class ThemeManager(BaseWindowController):
                 themeCopy = {}
                 for key, name, valueType in THEMEKEYS:
                     k = str(key)
-                    v = valueType(theme[key])
+                    if valueType == tuple:
+                        v = theme.get(key, FALLBACKCOLOR)
+                    else:
+                        v = valueType(theme[key])
                     themeCopy[k] = v
                 themeCopy["themeName"] = str(theme["themeName"])
                 themeCopy["themeType"] = "User"
-                with open(plistPath, "wb") as themeFile:
+                with open(path, "wb") as themeFile:
                     plistlib.dump(themeCopy, themeFile)
 
     def applyThemeCallback(self, sender):
