@@ -183,8 +183,8 @@ class ThemeManager(BaseWindowController):
         colorCell = RFColorCell.alloc().init()
         darkColorCell = RFColorCell.alloc().init()
         columnDescriptions = [
-            dict(title="Color", key="color", cell=colorCell, width=60),
-            dict(title="Dark Mode", key="darkColor", cell=darkColorCell, width=60),
+            dict(title="Light", key="color", cell=colorCell, width=60),
+            dict(title="Dark", key="darkColor", cell=darkColorCell, width=60),
             dict(title="Attribute", key="name")]
         self.w.editingList = vanilla.List((mid+20, 20, 480, -extrasHeight-20), [],
             columnDescriptions=columnDescriptions,
@@ -195,6 +195,7 @@ class ThemeManager(BaseWindowController):
             allowsSorting=False,
             doubleClickCallback=self.colorDoubleClickCallback)
         # Extra values for editing
+        help(self.w.editingList)
         self.w.editingExtras = vanilla.Group((mid+20, -extrasHeight-10, 480, -20))
         for i, extra in enumerate(NONCOLORKEYS):
             extraKey, extraName, extraType = extra
@@ -316,6 +317,7 @@ class ThemeManager(BaseWindowController):
 
 
     def colorDoubleClickCallback(self, sender):
+        print()
         item = self.getSelectedColorItem()
         # Doesnt allow defaults to be edited
         selectedIdx = self.getSelectedThemeIdx()

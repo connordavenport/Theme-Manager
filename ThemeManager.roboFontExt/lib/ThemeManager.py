@@ -22,6 +22,7 @@ DEFAULTSKEY = "com.andyclymer.themeManager"
 
 EXTENSIONBUNDLE = ExtensionBundle("ThemeManager")
 
+
 # Preference keys and names for the theme settings
 THEMEKEYS = [
     ("glyphViewOncurvePointsSize", "Oncurve Size", float),
@@ -76,6 +77,9 @@ THEMEKEYS = [
     ("glyphViewSegmentIndexColor", "Segment Index Text Color", tuple),
     ("glyphViewPointIndexColor", "Point Index Text Color", tuple),
     ("glyphViewEchoStrokeColor", "Echo Path Stroke Color", tuple)]
+
+
+DARK_THEMEKEYS = [(f"{key}.dark",name,val) for (key,name,val) in THEMEKEYS if getDefault(f"{key}.dark")]
 
 NONCOLORKEYS = [k for k in THEMEKEYS if not k[2] == tuple]
 FALLBACKCOLOR = [.5, .5, .5, .5]
@@ -145,6 +149,12 @@ class ThemeManager(BaseWindowController):
     def __init__(self):
 
         self.debug = False
+        
+        
+        if NSApp().appearance() == NSAppearance.appearanceNamed_(NSAppearanceNameDarkAqua):
+            self.mode = "Dark"
+        else:
+            self.mode = "Light"
 
         # List of theme data dictionaries
         self.themes = []
@@ -171,8 +181,10 @@ class ThemeManager(BaseWindowController):
         # Editing list
         extrasHeight = len(NONCOLORKEYS) * 25 + 5
         colorCell = RFColorCell.alloc().init()
+        darkColorCell = RFColorCell.alloc().init()
         columnDescriptions = [
-            dict(title="Color", key="color", cell=colorCell, width=90),
+            dict(title="Color", key="color", cell=colorCell, width=60),
+            dict(title="Dark Mode", key="darkColor", cell=darkColorCell, width=60),
             dict(title="Attribute", key="name")]
         self.w.editingList = vanilla.List((mid+20, 20, 480, -extrasHeight-20), [],
             columnDescriptions=columnDescriptions,
@@ -209,16 +221,24 @@ class ThemeManager(BaseWindowController):
         # Preview
         y += 40
         self.w.previewGlyphView = GlyphView((20, y, mid-20, 270))
-        self.w.previewGlyphView.setTheme(self.backupTheme)
+
+        tempTheme = self.convertThemeMode(self.backupTheme, self.mode)
+        self.w.previewGlyphView.setTheme(tempTheme)
         self.w.previewGlyphView.setShowOffCurvePoints(True)
         self.w.previewGlyphView.setShowBlues(True)
         # Apply theme
         y += 280
-        self.w.applyButton = vanilla.SquareButton((20, y, mid-60, 25), "Apply theme", callback=self.applyThemeCallback)
+        self.w.applyButton = vanilla.SquareButton((20, y, 180, 25), "Apply theme", callback=self.applyThemeCallback)
         self.w.applyButton.enable(False)
-        self.w.buttonUndo = vanilla.SquareButton((mid-30, y, 30, 25), "↩︎", callback=self.undoThemeCallback) # ⤺⟲⎌
+
+        self.w.buttonUndo = vanilla.SquareButton((210, y, 30, 25), "↩︎", callback=self.undoThemeCallback) # ⤺⟲⎌
         self.w.buttonUndo.getNSButton().setToolTip_("Revert Theme")
         self.w.buttonUndo.enable(False)
+        
+                
+        self.w.buttonDarkMode = vanilla.SquareButton((250, y, 30, 25), "☾", callback=self.toggleModeCallback) # ⤺⟲⎌
+        self.w.buttonDarkMode.getNSButton().setToolTip_("Toggle Dark Mode")
+
         # Give the window a callback to call when the window closes
         self.w.bind("close", self.windowClosedCallback)
 
@@ -245,8 +265,10 @@ class ThemeManager(BaseWindowController):
         for nameKey, name, valueType in THEMEKEYS:
             if valueType == tuple:
                 color = theme.get(nameKey, FALLBACKCOLOR)
+                darkColor = theme.get(nameKey + ".dark", color)
                 listItem = {
                     'color': NSColor.colorWithCalibratedRed_green_blue_alpha_(*color),
+                    'darkColor': NSColor.colorWithCalibratedRed_green_blue_alpha_(*darkColor),
                     'name': name,
                     'nameKey': nameKey}
                 listItems.append(listItem)
@@ -287,7 +309,10 @@ class ThemeManager(BaseWindowController):
             nameKey = (item['nameKey'])
             theme[nameKey] = NSColorToRgba(item['color'])
             if self.debug: print(theme[nameKey])
-            self.w.previewGlyphView.setTheme(theme)
+
+
+            tempTheme = self.convertThemeMode(theme, self.mode)
+            self.w.previewGlyphView.setTheme(tempTheme)
 
 
     def colorDoubleClickCallback(self, sender):
@@ -384,6 +409,15 @@ class ThemeManager(BaseWindowController):
                         v = theme.get(key, FALLBACKCOLOR)
                     else:
                         v = valueType(theme[key])
+                        
+                for key, name, valueType in DARK_THEMEKEYS:
+                    k = str(key)
+                    if valueType == tuple:
+                        # use RF defaults .dark for now
+                        v = theme.get(key, getDefault(key))
+                    else:
+                        v = valueType(theme[key])
+                        
                     themeCopy[k] = v
                 themeCopy["themeName"] = str(theme["themeName"])
                 themeCopy["themeType"] = "User"
@@ -428,8 +462,15 @@ class ThemeManager(BaseWindowController):
         for key, name, dataType in THEMEKEYS:
             data = getDefault(key)
             data = dataType(data)
-            # Save the data in the theme
+        # Save the data in the theme
             theme[key] = data
+            
+        for darkKey, darkName, darkDataType in DARK_THEMEKEYS:
+            darkData = getDefault(darkKey)
+            darkData = darkDataType(darkData)
+        # Save the data in the theme
+            theme[darkKey] = darkData
+            
         # Give the theme a default name
         new = []
         name = "★ New Theme"
@@ -550,7 +591,28 @@ class ThemeManager(BaseWindowController):
             data = getDefault(key)
             data = dataType(data)
             self.backupTheme[key] = data
+            
+        for darkKey, darkName, darkDataType in DARK_THEMEKEYS:
+            darkData = getDefault(darkKey)
+            darkData = darkDataType(darkData)
+        # Save the data in the theme
+            self.backupTheme[darkKey] = darkData
+            
+        self.currentTheme = self.backupTheme
 
+
+    def convertThemeMode(self, theme, mode):
+        if mode == "Dark":
+            outputTheme = {}
+            for key, val in theme.items():
+                if ".dark" in key:
+                    outputTheme[key.replace(".dark","")] = val
+                else:
+                    outputTheme[key] = val
+        else:
+            outputTheme = theme
+
+        return outputTheme
 
     # Theme preview
 
@@ -579,14 +641,20 @@ class ThemeManager(BaseWindowController):
                     extraKey, extraName, extraType = extra
                     extraEditor = getattr(self.w.editingExtras, extraKey)
                     extraEditor.enable(False)
-            # Using this index, get the theme name out of the self.themes list
+            # Using this index, get the theme name out of the self.themes list            
             theme = self.themes[selectedIdx]
-            self.w.previewGlyphView.setTheme(theme)
+            self.currentTheme = theme
+
+            tempTheme = self.convertThemeMode(self.currentTheme, self.mode)
+            self.w.previewGlyphView.setTheme(tempTheme)
             self.setEditingList(theme)
             self.w.editingList.enable(True)
         else:
             # Nothing was selected, clear out the temp theme namer
-            self.w.previewGlyphView.setTheme(self.backupTheme)
+
+
+            tempTheme = self.convertThemeMode(self.backupTheme, self.mode)
+            self.w.previewGlyphView.setTheme(tempTheme)
             # Update the UI to disable buttons that shouldn't be active when nothing is selected
             self.w.buttonExport.enable(False)
             self.w.applyButton.enable(False)
@@ -598,6 +666,17 @@ class ThemeManager(BaseWindowController):
                 extraKey, extraName, extraType = extra
                 extraEditor = getattr(self.w.editingExtras, extraKey)
                 extraEditor.enable(False)
+
+
+    def toggleModeCallback(self,sender):
+        
+        if self.mode == "Dark":
+            self.mode = "Light"
+        else:
+            self.mode = "Dark"
+        tempTheme = self.convertThemeMode(self.currentTheme, self.mode)
+        
+        self.w.previewGlyphView.setTheme(tempTheme)
 
 
     # Edit name sheet
