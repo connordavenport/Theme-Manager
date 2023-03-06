@@ -1,27 +1,14 @@
-from AppKit import *
 import os
-
-import vanilla
-from mojo.UI import GetFile, PutFile
+from copy import deepcopy
+import plistlib
+import AppKit
+import ezui
 from mojo.UI import getDefault, setDefault
 from mojo.extensions import getExtensionDefault, setExtensionDefault, ExtensionBundle
-from mojo.roboFont import OpenWindow
-
 from lib.tools.notifications import PostNotification
-from lib.cells.colorCell import RFPopupColorPanel, RFColorCell
-from lib.tools.misc import NSColorToRgba
 
-import plistlib
-
-# Our own branch of the defconAppKit GlyphView
-from defconAppKitBranch.glyphView import GlyphView
-from defconAppKit.windows.baseWindow import BaseWindowController
-
-# Temp name for a key to save the extension's preferences
 DEFAULTSKEY = "com.andyclymer.themeManager"
-
 EXTENSIONBUNDLE = ExtensionBundle("ThemeManager")
-
 
 # Preference keys and names for the theme settings
 THEMEKEYS = [
@@ -76,641 +63,658 @@ THEMEKEYS = [
     ("glyphViewContourIndexColor", "Contour Index Text Color", tuple),
     ("glyphViewSegmentIndexColor", "Segment Index Text Color", tuple),
     ("glyphViewPointIndexColor", "Point Index Text Color", tuple),
-    ("glyphViewEchoStrokeColor", "Echo Path Stroke Color", tuple)]
-
-
-DARK_THEMEKEYS = [(f"{key}.dark",name,val) for (key,name,val) in THEMEKEYS if getDefault(f"{key}.dark")]
-
-NONCOLORKEYS = [k for k in THEMEKEYS if not k[2] == tuple]
+    ("glyphViewEchoStrokeColor", "Echo Path Stroke Color", tuple)
+]
+DARKTHEMEKEYS = [(f"{key}.dark",name,val) for (key,name,val) in THEMEKEYS if getDefault(f"{key}.dark")]
 FALLBACKCOLOR = [.5, .5, .5, .5]
 
-"""
-Other theme preferences, for the future:
+PREVIEW_HEIGHT = 600
+WINDOW_WITHOUT_EDITOR_WIDTH = 530
+WINDOW_WITH_EDITOR_WIDTH = 1050
 
-DebuggerBackgroundColor
-DebuggerTextColor
-PyDEBackgroundColor
-PyDEHightLightColor
-PyDETokenColors
-    Comment
-    Error
-    Generic.Emph
-    Generic.Heading
-    Generic.Strong
-    Generic.Subheading
-    Keyword
-    Keyword.Namespace
-    Literal.Number
-    Literal.Number.Float
-    Literal.Number.Hex
-    Literal.Number.Oct
-    Literal.String
-    Literal.String.Doc
-    Name
-    Name.Attribute
-    Name.Builtin
-    Name.Builtin.Pseudo
-    Name.Class
-    Name.Constant
-    Name.Decorator
-    Name.Exception
-    Name.Function
-    Name.Namespace
-    Name.Tag
-    Name.Variable
-    Operator
-    Operator.Word
-    Punctuation
-    Text
+# -------------
+# Scripting API
+# -------------
 
-spaceCenterBackgroundColor
-spaceCenterBeamStrokeColor
-spaceCenterGlyphColor
-spaceCenterHightLightColor
-spaceCenterInputSelectionColor
-spaceCenterMarginsColor
-spaceCenterMetricsColor
-spaceCenterReverseColor
-"""
+def loadUserDefinedThemes():
+    userDefinedThemes = getExtensionDefault(DEFAULTSKEY)
+    loaded = []
+    if userDefinedThemes:
+        for theme in userDefinedThemes:
+            for nameKey, name, valueType in THEMEKEYS:
+                if nameKey not in theme:
+                    continue
+                theme[nameKey] = valueType(theme[nameKey])
+            loaded.append(theme)
+    return loaded
 
-"""
-todo:
-@@@ come up with smarter duplication function
-@@@ add licenses to all themes? @antonio
-@@@ right now we have it so the file is invalid if the THEMEKEYS key is in themeData, but should
-    we reverse that since new themes might be missing some keys. we would also need to
-    re-write *def setEditingList()* so that it builds the list from the selected theme and not
-    the THEMEKEYS.
-"""
+def loadBuiltInThemes():
+    presetFolder = os.path.join(
+        EXTENSIONBUNDLE.resourcesPath(),
+        "presetThemes"
+    )
+    loaded = []
+    for fileName in os.listdir(presetFolder):
+        name, ext = os.path.splitext(fileName)
+        if ext == ".roboFontTheme":
+            plistPath = os.path.join(presetFolder, fileName)
+            with open(plistPath, "rb") as themeFile:
+                theme = plistlib.load(themeFile)
+                theme["themeType"] = "Default"
+                loaded.append(theme)
+    return loaded
 
-class ThemeManager(BaseWindowController):
+def loadThemes():
+    themes = loadUserDefinedThemes()
+    themes += loadBuiltInThemes()
+    return themes
 
-
-    def __init__(self):
-
-        self.debug = False
+def themeBlender(theme1, theme2, factor, save=False):
+    # contributed by Erik van Blokland
+    
+    # gather all of the theme names
+    allThemes = [theme["themeName"] for theme in loadBuiltInThemes]
+    allThemes.extend([theme["themeName"] for theme in getExtensionDefault(DEFAULTSKEY)])
+    newTheme = {}    
+    if theme1 in allThemes and theme2 in allThemes:
+        blendedName = f"A {factor*100:3.1f}% blend between \"{theme1['themeName']}\" and \"{theme2['themeName']}\""
+        for name, value1 in theme1.items():
+            if name == "themeName":
+                newTheme[name] = blendedName
+                continue
+            elif name == 'themeType':
+                newTheme[name] = value1
+                continue
+            value2 = theme2[name]
+            if isinstance(value1, (int, float)) and isinstance(value2, (int, float)):
+                newTheme[name] = interpolate(value1, value2, factor)
+                continue
+            if len(value1) == len(value2):
+                r = []
+                for i, v1 in enumerate(value1):
+                    v2 = value2[i]
+                    r.append(interpolate(v1, v2, factor))
+                newTheme[name] = r
+    if save:
+        pastThemes = loadUserDefinedThemes()
+        pastThemes.append(newTheme)
+        saveThemes(pastThemes)
         
-        
-        if NSApp().appearance() == NSAppearance.appearanceNamed_(NSAppearanceNameDarkAqua):
-            self.mode = "Dark"
-        else:
-            self.mode = "Light"
+    return newTheme
+    
+def saveThemes(themes):
+    themes = [
+        theme for theme in themes
+        if theme["themeType"] == "User"
+    ]
+    setExtensionDefault(DEFAULTSKEY, themes)
 
-        # List of theme data dictionaries
-        self.themes = []
-        # On launch: go ahead and start loading themes
-        self.readThemePrefs()
-        self.loadDefaultThemes()
-        # On launch: hold aside current preferences for "undo"
-        self.backupTheme = {}
-        self.makeBackupTheme()
-        # Build the list of theme names
-        self.themeNames = []
+def applyTheme(themeOrThemeName):
+    theme = None
+    if isinstance(themeOrThemeName, str):
+        themes = loadThemes()
+        for t in themes:
+            if t["themeName"] == themeOrThemeName:
+                theme = t
+                break
+    else:
+        theme = themeOrThemeName
+    for key, val in theme.items():
+        setDefault(key, val)
+    PostNotification("doodle.preferencesChanged")
 
-        # Placeholder for the name edit sheet
-        self.nameSheet = None
 
-        mid = 280
-        # The Vanilla window
-        self.w = vanilla.Window((300, 560), "Theme Manager")
-        # Theme list
-        self.w.themeList = vanilla.List((20, 20, mid-20, 165), self.themeNames,
-            selectionCallback=self.listSelectionCallback,
-            doubleClickCallback=self.listDoubleClickCallback,
-            allowsMultipleSelection = False)
-        # Editing list
-        extrasHeight = len(NONCOLORKEYS) * 25 + 5
-        colorCell = RFColorCell.alloc().init()
-        darkColorCell = RFColorCell.alloc().init()
-        columnDescriptions = [
-            dict(title="Light", key="color", cell=colorCell, width=60),
-            dict(title="Dark", key="darkColor", cell=darkColorCell, width=60),
-            dict(title="Attribute", key="name")]
-        self.w.editingList = vanilla.List((mid+20, 20, 480, -extrasHeight-20), [],
-            columnDescriptions=columnDescriptions,
-            allowsEmptySelection=False,
-            allowsMultipleSelection=False,
-            enableTypingSensitivity=True,
-            rowHeight=20,
-            allowsSorting=False,
-            doubleClickCallback=self.colorDoubleClickCallback)
-        # Extra values for editing
-        help(self.w.editingList)
-        self.w.editingExtras = vanilla.Group((mid+20, -extrasHeight-10, 480, -20))
-        for i, extra in enumerate(NONCOLORKEYS):
-            extraKey, extraName, extraType = extra
-            extraEditor = vanilla.EditText((20, i*25, 50, 20), sizeStyle="small", callback=self.setThemeExtra)
-            extraTitle = vanilla.TextBox((95, i*25, -20, 20), extraName)
-            setattr(self.w.editingExtras, extraKey, extraEditor)
-            setattr(self.w.editingExtras, extraKey + "-title", extraTitle)
-        # Buttons
-        y = 200
-        self.w.buttonNewTheme = vanilla.SquareButton((20, y, 31, 25), "✚", callback=self.newThemeCallback) # ⌫✕✖︎✗✘★✚
-        self.w.buttonNewTheme.getNSButton().setToolTip_("New Theme")
-        self.w.buttonRemoveTheme = vanilla.SquareButton((50, y, 31, 25), "✘", callback=self.removeThemeCallback) #✘+
-        self.w.buttonRemoveTheme.getNSButton().setToolTip_("Remove Theme")
-        self.w.buttonDuplicateTheme = vanilla.SquareButton((80, y, 30, 25), "❏", callback=self.duplicateTheme)
-        self.w.buttonDuplicateTheme.getNSButton().setToolTip_("Duplicate Theme")
-        self.w.buttonEditTheme = vanilla.SquareButton((250, y, 30, 25), "✑", callback=self.editThemeCallback)
-        self.w.buttonEditTheme.getNSButton().setToolTip_("Edit Theme")
+# -----------------
+# Helpers
+# -----------------
 
-        self.w.buttonImport = vanilla.SquareButton((120, y, 61, 25), "Import", callback=self.importThemeCallback)
-        self.w.buttonExport = vanilla.SquareButton((180, y, 60, 25), "Export", callback=self.exportThemeCallback)
+def interpolate(a, b, f ):
+    return a+f*(b-a)
 
-        self.w.buttonDuplicateTheme.enable(False)
-        self.w.buttonRemoveTheme.enable(False)
-        # Preview
-        y += 40
-        self.w.previewGlyphView = GlyphView((20, y, mid-20, 270))
+# -----------------
+# Window Controller
+# -----------------
 
-        tempTheme = self.convertThemeMode(self.backupTheme, self.mode)
-        self.w.previewGlyphView.setTheme(tempTheme)
-        self.w.previewGlyphView.setShowOffCurvePoints(True)
-        self.w.previewGlyphView.setShowBlues(True)
-        # Apply theme
-        y += 280
-        self.w.applyButton = vanilla.SquareButton((20, y, 180, 25), "Apply theme", callback=self.applyThemeCallback)
-        self.w.applyButton.enable(False)
+identifierToStorageKey = dict(
+    editorNameField="themeName",
+    editorOnCurveSizeField="glyphViewOncurvePointsSize",
+    editorOffCurveSizeField="glyphViewOffCurvePointsSize",
+    editorGlyphStrokeWidthField="glyphViewStrokeWidth",
+    editorSelectionStrokeWidthField="glyphViewSelectionStrokeWidth",
+    editorHandleStrokeWidthField="glyphViewHandlesStrokeWidth",
+)
+storageKeyToIdentifier = {v:k for k, v in identifierToStorageKey.items()}
 
-        self.w.buttonUndo = vanilla.SquareButton((210, y, 30, 25), "↩︎", callback=self.undoThemeCallback) # ⤺⟲⎌
-        self.w.buttonUndo.getNSButton().setToolTip_("Revert Theme")
-        self.w.buttonUndo.enable(False)
-        
-                
-        self.w.buttonDarkMode = vanilla.SquareButton((250, y, 30, 25), "☾", callback=self.toggleModeCallback) # ⤺⟲⎌
-        self.w.buttonDarkMode.getNSButton().setToolTip_("Toggle Dark Mode")
+class ThemeManagerWindowController(ezui.WindowController):
 
-        # Give the window a callback to call when the window closes
-        self.w.bind("close", self.windowClosedCallback)
+    debug = True
 
-        # Open the window
+    def build(self):
+        content = """
+        = HorizontalStack
+
+        * VerticalStack @themeStack
+        > |----------| @themeTable
+        > | X | name |
+        > |----------|
+        > > ((( {plus} | {minus} | {multiply} ))) @themeTableItemButton
+        > > ((( {square.and.arrow.down} | {square.and.arrow.up} ))) @themeFileButton
+
+        > ----------
+
+        > * HorizontalStack @themeApplyButtonStack
+        >> (Apply) @themeApplyButton
+        >> (Undo) @themeUndoApplyButton
+
+        * MerzView @themePreview
+
+        * VerticalStack @editorStack
+
+        > !§ Name
+        > -------
+        > [__] @editorNameField
+
+        > !§ Colors
+        > ---------
+
+        > |--------------| @editorColorsTable
+        > | C | C | name |
+        > |--------------|
+
+        > !§ Sizes
+        > --------
+
+        > * HorizontalStack @editorOnCurveSizeStack
+        >> [__](÷) @editorOnCurveSizeField
+        >> Oncurve Size
+
+        > * HorizontalStack @editorOffCurveSizeStack
+        >> [__](÷) @editorOffCurveSizeField
+        >> Offcurve Size
+
+        > * HorizontalStack @editorGlyphStrokeWidthStack
+        >> [__](÷) @editorGlyphStrokeWidthField
+        >> Glyph Stroke Width
+
+        > * HorizontalStack @editorSelectionStrokeWidthStack
+        >> [__](÷) @editorSelectionStrokeWidthField
+        >> Selection Stroke Width
+
+        > * HorizontalStack @editorHandleStrokeWidthStack
+        >> [__](÷) @editorHandleStrokeWidthField
+        >> Handle Stroke Width
+        """
+        numberFieldWidth = 50
+        descriptionData = dict(
+            themeStack=dict(
+                width=200
+            ),
+            themeTable=dict(
+                height="fill",
+                columnDescriptions=[
+                    dict(
+                        identifier="themeImage",
+                        cellDescription=dict(
+                            cellType="Image"
+                        ),
+                        width=12
+                    ),
+                    dict(
+                        identifier="themeName"
+                    )
+                ],
+                allowsGroupRows=True,
+                showColumnTitles=False,
+                allowsMultipleSelection=False,
+                allowsEmptySelection=False
+            ),
+            themeTableItemButton=dict(
+                gravity="leading"
+            ),
+            themeFileButton=dict(
+            ),
+            themeApplyButton=dict(
+            ),
+            themeUndoApplyButton=dict(
+            ),
+
+            themePreview=dict(
+                width=300,
+                height=PREVIEW_HEIGHT,
+                backgroundColor=(1, 0, 0 ,1)
+            ),
+
+            editorStack=dict(
+                width=500
+            ),
+            editorColorsTable=dict(
+                height="fill",
+                # height=300,
+                columnDescriptions=[
+                    dict(
+                        identifier="color",
+                        title="Light",
+                        width=50,
+                        editable=True,
+                        cellDescription=dict(cellType="ColorWell")
+                    ),
+                    dict(
+                        identifier="darkColor",
+                        title="Dark",
+                        width=50,
+                        editable=True,
+                        cellDescription=dict(cellType="ColorWell")
+                    ),
+                    dict(
+                        identifier="name",
+                        title="",
+                        editable=False
+                    )
+                ],
+                allowsGroupRows=True,
+                showColumnTitles=True,
+                allowsMultipleSelection=False,
+                allowsEmptySelection=False
+            ),
+            editorOnCurveSizeField=dict(
+                width=numberFieldWidth
+            ),
+            editorOffCurveSizeField=dict(
+                width=numberFieldWidth
+            ),
+            editorGlyphStrokeWidthField=dict(
+                width=numberFieldWidth
+            ),
+            editorSelectionStrokeWidthField=dict(
+                width=numberFieldWidth
+            ),
+            editorHandleStrokeWidthField=dict(
+                width=numberFieldWidth
+            )
+        )
+        self.w = ezui.EZWindow(
+            content=content,
+            descriptionData=descriptionData,
+            controller=self,
+            title="Theme Manager",
+            size=(WINDOW_WITHOUT_EDITOR_WIDTH, "auto")
+        )
+        # store a backup of the current settings
+        self.backupTheme = self.getCurrentUserDefaultsAsTheme()
+        # store references to the commonly needed items
+        self.themeTable = self.w.getItem("themeTable")
+        self.editorStack = self.w.getItem("editorStack")
+        self.editorColorsTable = self.w.getItem("editorColorsTable")
+        self.themePreview = self.w.getItem("themePreview")
+        # build the preview
+        self.buildPreview()
+        # load the data
+        self.loadThemes()
+        # set default button states
+        self.w.getItem("themeUndoApplyButton").enable(False)
+
+    def started(self):
         self.w.open()
 
-        self.rebuildThemeList(setList=True)
+    def windowWillClose(self, sender):
+        self.saveThemes()
 
-        # Load the preview font
-        previewFontPath = os.path.join(EXTENSIONBUNDLE.resourcesPath(), "GlyphPreview.ufo")
-        previewFont = OpenFont(previewFontPath, showInterface=False)
-        previewGlyph = previewFont["a"]
-        self.w.previewGlyphView.set(previewGlyph.naked())
+    # User Defaults Load/Save
+    # -----------------------
 
+    def loadThemes(self):
+        # user defined themes
+        userDefinedThemes = loadUserDefinedThemes()
+        userDefinedItems = self.wrapThemeTableItems(userDefinedThemes, themeType="User")
+        # built-in themes
+        builtInThemes = loadBuiltInThemes()
+        builtInItems = self.wrapThemeTableItems(builtInThemes, themeType="Default")
+        self.populateThemeTable(userDefinedItems, builtInItems)
 
-    # Helpers
+    def saveThemes(self):
+        userDefinedItems, builtInItems = self.getThemeTableItems()
+        themes = [self.unwrapThemeTableItem(item) for item in userDefinedItems]
+        saveThemes(themes)
 
-    # =====
+    def getCurrentUserDefaultsAsTheme(self):
+        theme = {}
+        for key, name, dataType in THEMEKEYS + DARKTHEMEKEYS:
+            data = getDefault(key)
+            data = dataType(data)
+            theme[key] = data
+        return theme
 
-    def setEditingList(self, theme):
-        # Collect the theme data for the selected theme and set it to the editingList
-        if self.debug: print("setEditingList")
-        listItems = []
+    # Theme Table
+    # -----------
+
+    def getThemeTableItems(self):
+        items = [
+            item for item in self.themeTable.get()
+            if not isinstance(item, ezui.TableGroupRow)
+        ]
+        userDefinedItems = []
+        builtInItems = []
+        for item in items:
+            if item["themeType"] == "User":
+                userDefinedItems.append(item)
+            elif item["themeType"] == "Default":
+                builtInItems.append(item)
+        return (userDefinedItems, builtInItems)
+
+    def wrapThemeTableItem(self, theme, themeType="User"):
+        theme = dict(theme)
+        theme["themeType"] = themeType
+        if themeType == "User":
+            themeImage = ezui.makeImage(
+                symbolName="star.fill",
+                template=True
+            )
+        else:
+            themeImage = ezui.makeImage(
+                symbolName="lock",
+                template=True
+            )
+        theme["themeImage"] = themeImage
+        return theme
+
+    def wrapThemeTableItems(self, themes, themeType="User"):
+        items = [
+            self.wrapThemeTableItem(theme, themeType=themeType)
+            for theme in themes
+        ]
+        return items
+
+    def unwrapThemeTableItem(self, item):
+        item = dict(item)
+        del item["themeImage"]
+        theme = deepcopy(item)
+        return theme
+
+    def populateThemeTable(self, userDefinedItems, builtInItems, selection=None):
+        items = (
+              [ezui.TableGroupRow("Your Themes")]
+            + userDefinedItems
+            + [ezui.TableGroupRow("Built-In Themes")]
+            + builtInItems
+        )
+        self.themeTable.set(items)
+        if selection is not None:
+            # select the specified theme
+            name = selection["themeName"]
+            for i, item in enumerate(items):
+                if isinstance(item, ezui.TableGroupRow):
+                    continue
+                if item["themeName"] == name:
+                    self.themeTable.setSelectedIndexes([i])
+                    break
+        else:
+            # select the first theme
+            for i, item in enumerate(items):
+                if isinstance(item, ezui.TableGroupRow):
+                    continue
+                self.themeTable.setSelectedIndexes([i])
+                break
+
+    def themeTableSelectionCallback(self, sender):
+        items = sender.getSelectedItems()
+        if not items:
+            raise NotImplementedError("There must be at least one item in themeTable.")
+        item = items[0]
+        if isinstance(item, ezui.TableGroupRow):
+            return
+        colorItems = []
+        values = dict(
+            editorNameField=item["themeName"]
+        )
         for nameKey, name, valueType in THEMEKEYS:
             if valueType == tuple:
-                color = theme.get(nameKey, FALLBACKCOLOR)
-                darkColor = theme.get(nameKey + ".dark", color)
-                listItem = {
-                    'color': NSColor.colorWithCalibratedRed_green_blue_alpha_(*color),
-                    'darkColor': NSColor.colorWithCalibratedRed_green_blue_alpha_(*darkColor),
-                    'name': name,
-                    'nameKey': nameKey}
-                listItems.append(listItem)
+                color = item.get(nameKey, FALLBACKCOLOR)
+                darkColor = item.get(nameKey + ".dark", color)
+                colorItem = dict(
+                    color=color,
+                    darkColor=darkColor,
+                    name=name,
+                    nameKey=nameKey
+                )
+                colorItems.append(colorItem)
             else:
-                value = theme[nameKey]
-                extraEditor = getattr(self.w.editingExtras, nameKey)
-                extraEditor.set(value)
-        self.w.editingList.set(listItems)
+                identifier = storageKeyToIdentifier[nameKey]
+                value = item[nameKey]
+                values[identifier] = valueType(value)
+        self.editorColorsTable.set(colorItems)
+        self.editorStack.setItemValues(values)
+        showEditor = item["themeType"] != "Default"
+        x, y, w, h = self.w.getPosSize()
+        if showEditor:
+            self.w.setPosSize((x, y, WINDOW_WITH_EDITOR_WIDTH, h))
+            self.editorStack.show(True)
+        else:
+            self.editorStack.show(False)
+            self.w.setPosSize((x, y, WINDOW_WITHOUT_EDITOR_WIDTH, h))
 
+    # creation/destruction
 
-    def getSelectedColorItem(self):
-        # Get the selected item from the editingList
-        items = self.w.editingList.get()
-        if len(items):
-            i = self.w.editingList.getSelection()[0]
-            return items[i]
+    def themeTableItemButtonCallback(self, sender):
+        request = sender.get()
+        if request == 0:
+            self.themeTableAddTheme()
+        elif request == 1:
+            self.themeTableRemoveTheme()
+        elif request == 2:
+            self.themeTableDuplicateTheme()
+        else:
+            raise NotImplementedError(f"Unknown themeTableItemButton value: {request}")
 
-
-    def getSelectedThemeIdx(self):
-        # Return the index of the selected theme, or None if there's no selection
-        selection = self.w.themeList.getSelection()
-        if selection:
-            # If there is a selection, it will be returned as a list even if there's one item.
-            # Take the first item only
-            selectedIdx = selection[0]
-            return selectedIdx
-        else: return None
-
-
-    # Theme editing callbacks
-
-    def setColor_(self, sender):
-        item = self.getSelectedColorItem()
-        item['color'] = sender.color()
-        selectedIdx = self.getSelectedThemeIdx()
-        if not selectedIdx == None:
-            theme = self.themes[selectedIdx]
-            nameKey = (item['nameKey'])
-            theme[nameKey] = NSColorToRgba(item['color'])
-            if self.debug: print(theme[nameKey])
-
-
-            tempTheme = self.convertThemeMode(theme, self.mode)
-            self.w.previewGlyphView.setTheme(tempTheme)
-
-
-    def colorDoubleClickCallback(self, sender):
-        print()
-        item = self.getSelectedColorItem()
-        # Doesnt allow defaults to be edited
-        selectedIdx = self.getSelectedThemeIdx()
-        if not selectedIdx == None:
-            theme = self.themes[selectedIdx]
-            if theme["themeType"] != "Default":
-                self._popupColorPanel = RFPopupColorPanel(self.setColor_, item['color'], alpha=True)
-            else:
-                self.showMessage("Sorry!","You can't edit the default themes.\nIf you'd like to make changes to this theme,\nyou can duplicate '❏' it and edit that theme.") #🤷‍♂️
-
-
-    def setThemeExtra(self, sender):
-        selectedIdx = self.getSelectedThemeIdx()
-        if not selectedIdx == None:
-            theme = self.themes[selectedIdx]
-            for extra in NONCOLORKEYS:
-                extraKey, extraName, extraType = extra
-                extraEditor = getattr(self.w.editingExtras, extraKey)
-                extraValue = extraEditor.get()
-                try:
-                    extraValue = extraType(extraValue)
-                    theme[extraKey] = extraValue
-                except: pass
-        # Update
-        self.listSelectionCallback(None)
-
-
-    # Interface Callbacks
-
-    def windowClosedCallback(self, sender):
-        if self.debug: print("windowClosedCallback")
-        # The window is closing, save the themes into the extension preferenes using setExtensionDefault()
-        # First, only keep the user defined themes, don't need to save the default themes
-        themesToSave = []
-        for theme in self.themes:
-            if theme["themeType"] == "User":
-                themesToSave += [theme]
-        setExtensionDefault(DEFAULTSKEY, themesToSave)
-
-
-    def undoThemeCallback(self, sender):
-        if self.debug: print("undoThemeCallback")
-        # Apply the backed up theme
-        self._applyTheme(self.backupTheme)
-
-
-    def importThemeCallback(self, sender):
-        if self.debug: print("importThemeCallback")
-        # Callback from the "Import" button
-        # Pop open an "Open" dialog to get a file path, then call readThemePlist()
-        path = GetFile(message="Import Theme", fileTypes=["roboFontTheme"])
-        # If they did choose a path, save it.
-        # If they clicked cancel, there would be no path.
-        if path:
-            with open(path, "rb") as themeFile:
-                themeData = plistlib.load(themeFile)
-            # Validate the themeData
-            valid = True
-            for key, name, valueType in THEMEKEYS:
-                if not key in themeData:
-                    valid = False
-            if valid:
-                self.themes += [themeData]
-                self.rebuildThemeList()
-            else:
-                NSBeep()
-                self.showMessage("Sorry!", "This is an invalid theme file.")
-
-
-    def exportThemeCallback(self, sender):
-        if self.debug: print("exportThemeCallback")
-        # Callback from the "Export" button
-        # Pop open a "Save" dialog to get a file path, then call writeThemePlist()
-        selectedIdx = self.getSelectedThemeIdx()
-        if not selectedIdx == None:
-            # Fetch the theme
-            theme = self.themes[selectedIdx]
-            # Format a filename to save this theme as
-            name = theme["themeName"]
-            fileName = "%s.roboFontTheme" % name
-            # Open the PutFile window to see if the user can locate a path to save the file
-            path = PutFile(fileName=fileName)
-            # If they did choose a path, save it.
-            # If they clicked cancel, there would be no path.
-            if path:
-                # Make a copy of the theme, fixing the item types (the plist has problems saving otherwise)
-                themeCopy = {}
-                for key, name, valueType in THEMEKEYS:
-                    k = str(key)
-                    if valueType == tuple:
-                        v = theme.get(key, FALLBACKCOLOR)
-                    else:
-                        v = valueType(theme[key])
-                        
-                for key, name, valueType in DARK_THEMEKEYS:
-                    k = str(key)
-                    if valueType == tuple:
-                        # use RF defaults .dark for now
-                        v = theme.get(key, getDefault(key))
-                    else:
-                        v = valueType(theme[key])
-                        
-                    themeCopy[k] = v
-                themeCopy["themeName"] = str(theme["themeName"])
-                themeCopy["themeType"] = "User"
-                with open(path, "wb") as themeFile:
-                    plistlib.dump(themeCopy, themeFile)
-
-    def applyThemeCallback(self, sender):
-        if self.debug: print("applyThemeCallback")
-        # Callback from the "Apply Theme" button
-        # Use setDefault() to set the value for each of the preferences keys
-        selectedIdx = self.getSelectedThemeIdx()
-        if not selectedIdx == None:
-            # Fetch the theme
-            theme = self.themes[selectedIdx]
-            self._applyTheme(theme)
-        self.w.buttonUndo.enable(True)
-
-
-    def _applyTheme(self, theme):
-        # Do the actual applying of the theme
-        for key, val in theme.items():
-            setDefault(key, val)
-        PostNotification("doodle.preferencesChanged")
-
-    def removeThemeCallback(self, sender):
-        if self.debug: print("removeThemeCallback")
-        # Callback from the "Remove" button
-        # Remove this theme from the self.themes dictionary and update the vanilla list to no longer show it
-        selectedIdx = self.getSelectedThemeIdx()
-        if not selectedIdx == None:
-            theme = self.themes[selectedIdx]
-            if theme["themeType"] == "User":
-                del(self.themes[selectedIdx])
-                self.rebuildThemeList()
-
-
-    def newThemeCallback(self, sender):
-        if self.debug: print("newThemeCallback")
-        # Callback from the "New" button
-        # Read all of the current preferences into a new theme dictionary and update the Vanilla list
-        theme = {}
-        for key, name, dataType in THEMEKEYS:
-            data = getDefault(key)
-            data = dataType(data)
-        # Save the data in the theme
-            theme[key] = data
-            
-        for darkKey, darkName, darkDataType in DARK_THEMEKEYS:
-            darkData = getDefault(darkKey)
-            darkData = darkDataType(darkData)
-        # Save the data in the theme
-            theme[darkKey] = darkData
-            
+    def themeTableAddTheme(self):
+        # Read all of the current preferences into a new theme dictionary
+        theme = self.getCurrentUserDefaultsAsTheme()
         # Give the theme a default name
-        new = []
-        name = "★ New Theme"
-        for themes in self.themeNames:
-            if name in themes:
-                new.append(themes)
-        length = len(new) + 1
-        if name in self.themeNames:
-            newName = name.replace("★ ", "")
-            themeName = newName + " (%s)" % length
-            theme["themeName"] = themeName
-            theme["themeType"] = "User" # User or Default
-        else:
-            theme["themeName"] = "New Theme"
-            theme["themeType"] = "User" # User or Default
-        self.themes += [theme]
-        self.rebuildThemeList()
-        self.editName((len(self.themes) - 1), theme["themeName"])
+        theme["themeName"] = self.findNewThemeName()
+        # Get the loaded items
+        userDefinedItems, builtInItems = self.getThemeTableItems()
+        item = self.wrapThemeTableItem(theme, themeType="User")
+        userDefinedItems.append(item)
+        self.populateThemeTable(userDefinedItems, builtInItems, selection=item)
 
-    def duplicateTheme(self, sender):
-        if self.debug: print("duplicateTheme")
-        selectedIdx = self.getSelectedThemeIdx()
-        if not selectedIdx == None:
-            theme = self.themes[selectedIdx]
-            dupeTheme = theme.copy()
-            name = theme["themeName"]
-            if name in self.themeNames:
-                i = 2
-                while "★ " + name + " (%s)" % i in self.themeNames:
-                    i += 1
-                name = name + " (%s)" % i
-            dupeTheme["themeName"] = name
-            dupeTheme["themeType"] = "User"
-        self.themes += [dupeTheme]
-        self.rebuildThemeList()
+    def themeTableRemoveTheme(self):
+        items = self.themeTable.getSelectedItems()
+        item = items[0]
+        if item["themeType"] == "Default":
+            self.showMessage("You can’t delete built-in themes.")
+            return
+        themeName = item["themeName"]
+        remove = None
+        userDefinedItems, builtInItems = self.getThemeTableItems()
+        for i, theme in enumerate(userDefinedItems):
+            if theme["themeName"] == themeName:
+                remove = i
+        del userDefinedItems[i]
+        self.populateThemeTable(userDefinedItems, builtInItems)
 
+    def themeTableDuplicateTheme(self):
+        items = self.themeTable.getSelectedItems()
+        item = items[0]
+        theme = self.unwrapThemeTableItem(item)
+        theme = deepcopy(theme)
+        theme["themeName"] = self.findNewThemeName()
+        item = self.wrapThemeTableItem(theme, themeType="User")
+        userDefinedItems, builtInItems = self.getThemeTableItems()
+        userDefinedItems.append(item)
+        self.populateThemeTable(userDefinedItems, builtInItems)
 
-    def listSelectionCallback(self, sender):
-        if self.debug: print("listSelectionCallback")
-        # Callback when the selection in the Vanlla List changed
-        # Figure out which item was selected (it can be more than one)
-        selectedIdx = self.getSelectedThemeIdx()
-        # The selection is a list of indices, because more than one thing could be selected
-        # Just call the updatePrewview function and it will handle the rest
-        self.updatePreview(selectedIdx)
-
-
-    def listDoubleClickCallback(self, sender):
-        if self.debug: print("listDoubleClickCallback")
-        # Callback when the list of themes is double-clicked
-        # Pop open a sheet to rename the theme
-        selectedIdx = self.getSelectedThemeIdx()
-        if not selectedIdx == None:
-            if self.debug: print(selectedIdx)
-            theme = self.themes[selectedIdx]
-            if theme["themeType"] == "User":
-                self.editName(selectedIdx, theme["themeName"])
-
-
-    def editThemeCallback(self, sender):
-        # Open/close the theme editor
-        winX, winY, width, height = self.w.getPosSize()
-        if width == 300:
-            newWidth = 800
-        else: newWidth = 300
-        self.w.setPosSize((winX, winY, newWidth, height))
-
-
-    # Functions when the extension launches
-
-
-    def readThemePrefs(self):
-        if self.debug: print("readThemePrefs")
-        # Use getExtensionDefault() to read out all of the saved themes
-        savedThemes = getExtensionDefault(DEFAULTSKEY)
-        if savedThemes:
-            # Copy each theme into the self.themes dictionary
-            for theme in savedThemes:
-                self.themes += [theme]
-
-
-    def loadDefaultThemes(self):
-        if self.debug: print("loadDefaultThemes")
-        # Use the readThemePlist() function to load all of the curated themes out of a folder that lives in this roboFontExt
-        presetFolder = os.path.join(EXTENSIONBUNDLE.resourcesPath(), "presetThemes")
-        for fileName in os.listdir(presetFolder):
-            name, ext = os.path.splitext(fileName)
-            if ext == ".roboFontTheme":
-                plistPath = os.path.join(presetFolder, fileName)
-                with open(plistPath, "rb") as themeFile:
-                    themeData = plistlib.load(themeFile)
-                # Make sure that it's flagged as a default theme
-                themeData["themeType"] = "Default"
-                self.themes += [themeData]
-
-
-    def rebuildThemeList(self, setList=True):
-        if self.debug: print("rebuildThemeList")
-        # Rebuid the list in the interface, after loading/adding/deleting themes
-        self.themeNames = []
-        for theme in self.themes:
-            themeName = theme["themeName"]
-            if theme["themeType"] == "User":
-                themeName = "★ " + themeName
-            if theme["themeType"] == "Default":
-                pass
-            self.themeNames += [themeName]
-        if setList:
-            self.w.themeList.set(self.themeNames)
-        self.w.themeList.setSelection([])
-
-
-    def makeBackupTheme(self):
-        if self.debug: print("makeBackupTheme")
-        # Make a backup of the current user prefs
-        self.backupTheme = {}
-        for key, name, dataType in THEMEKEYS:
-            data = getDefault(key)
-            data = dataType(data)
-            self.backupTheme[key] = data
-            
-        for darkKey, darkName, darkDataType in DARK_THEMEKEYS:
-            darkData = getDefault(darkKey)
-            darkData = darkDataType(darkData)
-        # Save the data in the theme
-            self.backupTheme[darkKey] = darkData
-            
-        self.currentTheme = self.backupTheme
-
-
-    def convertThemeMode(self, theme, mode):
-        if mode == "Dark":
-            outputTheme = {}
-            for key, val in theme.items():
-                if ".dark" in key:
-                    outputTheme[key.replace(".dark","")] = val
-                else:
-                    outputTheme[key] = val
-        else:
-            outputTheme = theme
-
-        return outputTheme
-
-    # Theme preview
-
-
-    def updatePreview(self, selectedIdx):
-        if self.debug: print("updatePreview")
-        # Update the preview drawing to use the colors of the selected theme in the list
-        # The selection is a list, because the way a vanilla list works sometimes is that more than one thing can be selected
-        if not selectedIdx == None:
-            # Something was selected
-            # Update the UI to enable the export and apply button
-            self.w.buttonExport.enable(True)
-            self.w.applyButton.enable(True)
-            self.w.buttonDuplicateTheme.enable(True)
-            # Enable the "Remove" button only if this is a user defined theme
-            theme = self.themes[selectedIdx]
-            if theme["themeType"] == "User":
-                self.w.buttonRemoveTheme.enable(True)
-                for extra in NONCOLORKEYS:
-                    extraKey, extraName, extraType = extra
-                    extraEditor = getattr(self.w.editingExtras, extraKey)
-                    extraEditor.enable(True)
+    def findNewThemeName(self):
+        userDefinedItems, builtInItems = self.getThemeTableItems()
+        names = [theme["themeName"] for theme in userDefinedItems]
+        names += [theme["themeName"] for theme in builtInItems]
+        counter = 0
+        while 1:
+            if counter == 0:
+                name = "New Theme"
             else:
-                self.w.buttonRemoveTheme.enable(False)
-                for extra in NONCOLORKEYS:
-                    extraKey, extraName, extraType = extra
-                    extraEditor = getattr(self.w.editingExtras, extraKey)
-                    extraEditor.enable(False)
-            # Using this index, get the theme name out of the self.themes list            
-            theme = self.themes[selectedIdx]
-            self.currentTheme = theme
+                name = f"New Theme {counter}"
+            if name not in names:
+                return name
+            counter += 1
 
-            tempTheme = self.convertThemeMode(self.currentTheme, self.mode)
-            self.w.previewGlyphView.setTheme(tempTheme)
-            self.setEditingList(theme)
-            self.w.editingList.enable(True)
+    # import/export
+
+    def themeFileButtonCallback(self, sender):
+        request = sender.get()
+        if request == 0:
+            self.importTheme()
+        elif request == 1:
+            self.exportTheme()
         else:
-            # Nothing was selected, clear out the temp theme namer
+            raise NotImplementedError(f"Unknown themeFileButton value: {request}")
+
+    def importTheme(self):
+        self.showGetFile(
+            self.importThemeDialogCallback,
+            fileTypes=["roboFontTheme"],
+            allowsMultipleSelection=False
+        )
+
+    def importThemeDialogCallback(self, paths):
+        if not paths:
+            return
+        path = paths[0]
+        with open(path, "rb") as themeFile:
+            themeData = plistlib.load(themeFile)
+        themeName = themeData.pop("themeName")
+        themeData.pop("themeType")
+        validated = dict(
+            themeType="User"
+        )
+        invalidValueTypes = []
+        for nameKey, name, valueType in THEMEKEYS + DARKTHEMEKEYS:
+            if nameKey not in themeData:
+                continue
+            value = themeData.pop(nameKey)
+            try:
+                v = valueType(value)
+                value = v
+            except TypeError:
+                pass
+            if not isinstance(value, valueType):
+                invalidValueTypes.append(nameKey)
+                continue
+            validated[nameKey] = value
+        validityMessage = []
+        if themeData:
+            validityMessage.append(
+                f"Unknown keys defined: {', '.join(themeData.keys())}"
+            )
+        if invalidValueTypes:
+            validityMessage.append(
+                f"Invalid value types for keys: {', '.join(invalidValueTypes)}"
+            )
+        userDefinedItems, builtInItems = self.getThemeTableItems()
+        existingNames = [item["themeName"] for item in userDefinedItems + builtInItems]
+        if themeName in existingNames:
+            validityMessage.append(f"The name '{themeName}' is already used.")
+            themeName = self.findNewThemeName()
+        validated["themeName"] = themeName
+        item = self.wrapThemeTableItem(validated)
+        userDefinedItems.append(item)
+        self.populateThemeTable(userDefinedItems, builtInItems, selection=item)
+        if validityMessage:
+            AppKit.NSBeep()
+            validityMessage = [
+                "This is an invalid theme file. As much of the data was imported as possible. These are the errors:"
+            ] + validityMessage
+            self.showMessage(
+                "Sorry!",
+                "\n".join(validityMessage)
+            )
+
+    def exportTheme(self):
+        items = self.themeTable.getSelectedItems()
+        if not items:
+            return
+        item = items[0]
+        theme = self.unwrapThemeTableItem(item)
+        fileName = f"{theme['themeName']}.roboFontTheme"
+        self._exportingTheme = theme
+        self.showPutFile(
+            self.exportThemeDialogCallback,
+            fileTypes=["roboFontTheme"],
+            fileName=fileName
+        )
+
+    def exportThemeDialogCallback(self, path):
+        theme = self._exportingTheme
+        del self._exportingTheme
+        if not path:
+            return
+        themeStorage = dict(
+            themeName=theme["themeName"],
+            themeType="User"
+        )
+        for key, name, valueType in THEMEKEYS + DARKTHEMEKEYS:
+            themeStorage[key] = valueType(theme[key])
+        with open(path, "wb") as themeFile:
+            plistlib.dump(themeStorage, themeFile)
+
+    # apply/undo
+
+    def themeApplyButtonCallback(self, sender):
+        items = self.themeTable.getSelectedItems()
+        if not items:
+            return
+        item = items[0]
+        theme = self.unwrapThemeTableItem(item)
+        applyTheme(theme)
+        self.w.getItem("themeUndoApplyButton").enable(True)
+
+    def themeUndoApplyButtonCallback(self, sender):
+        applyTheme(self.backupTheme)
+
+    # Preview
+    # -------
+
+    def buildPreview(self):
+        # previewFontPath = os.path.join(EXTENSIONBUNDLE.resourcesPath(), "GlyphPreview.ufo")
+        # self.previewFont = OpenFont(previewFontPath, showInterface=False)
+        # self.previewGlyph = self.previewFont["a"]
+        container = self.themePreview.getMerzContainer()
+        self.previewLightModeContainer = container.appendBaseSublayer(
+            position=("center", "top"),
+            size=("width", PREVIEW_HEIGHT / 2),
+            backgroundColor=(1, 1, 1, 1)
+        )
+        self.previewDarkModeContainer = container.appendBaseSublayer(
+            position=("center", "bottom"),
+            size=("width", PREVIEW_HEIGHT / 2),
+            backgroundColor=(0, 0, 0, 1)
+        )
+        container.appendBaseSublayer(
+            position=("center", "center"),
+            size=("width", "height"),
+            borderColor=(0.5, 0.5, 0.5, 1),
+            borderWidth=1
+        )
+
+    # Editor
+    # ------
+
+    def storeEditorValues(self):
+        selectedThemeItem = self.themeTable.getSelectedItems()[0]
+        for identifier, nameKey in identifierToStorageKey.items():
+            selectedThemeItem[nameKey] = self.editorStack.getItemValue(identifier)
+        for item in self.editorColorsTable.get():
+            color = item["color"]
+            darkColor = item["darkColor"]
+            nameKey = item["nameKey"]
+            selectedThemeItem[nameKey] = color
+            selectedThemeItem[nameKey + ".dark"] = darkColor
+
+    def editorTableCallback(self, sender):
+        self.storeEditorValues()
+
+    def editorStackCallback(self, sender):
+        self.storeEditorValues()
+        self.themeTable.reloadData(self.themeTable.getSelectedIndexes())
 
 
-            tempTheme = self.convertThemeMode(self.backupTheme, self.mode)
-            self.w.previewGlyphView.setTheme(tempTheme)
-            # Update the UI to disable buttons that shouldn't be active when nothing is selected
-            self.w.buttonExport.enable(False)
-            self.w.applyButton.enable(False)
-            self.w.buttonDuplicateTheme.enable(False)
-            self.w.buttonRemoveTheme.enable(False)
-            self.setEditingList(self.backupTheme)
-            self.w.editingList.enable(False)
-            for extra in NONCOLORKEYS:
-                extraKey, extraName, extraType = extra
-                extraEditor = getattr(self.w.editingExtras, extraKey)
-                extraEditor.enable(False)
-
-
-    def toggleModeCallback(self,sender):
-        
-        if self.mode == "Dark":
-            self.mode = "Light"
-        else:
-            self.mode = "Dark"
-        tempTheme = self.convertThemeMode(self.currentTheme, self.mode)
-        
-        self.w.previewGlyphView.setTheme(tempTheme)
-
-
-    # Edit name sheet
-
-
-    def editName(self, index, name):
-        # Make a new vanilla "sheet" with controls for editing the name of the theme
-        self.nameSheet = vanilla.Sheet((200, 110), self.w)
-        self.nameSheet.editingIndex = index
-        self.nameSheet.nameTitle = vanilla.TextBox((10, 10, -10, 25), "Theme Name:")
-        self.nameSheet.name = vanilla.EditText((10, 35, -10, 25), name)
-        self.nameSheet.cancelButton = vanilla.Button((10, -35, 95, 25), "Cancel", callback=self.editSheetClose)
-        self.nameSheet.okButton = vanilla.Button((115, -35, -10, 25), "OK", callback=self.editSheetOKCallback)
-        self.nameSheet.open()
-
-
-    def editSheetClose(self, sender):
-        # Callback to close the sheet
-        if self.nameSheet:
-            self.nameSheet.close()
-            self.nameSheet = None
-
-
-    def editSheetOKCallback(self, sender):
-        # Callback when clicking "OK" in the Edit Name sheet
-        if self.nameSheet:
-            themeIndex = self.nameSheet.editingIndex
-            newName = self.nameSheet.name.get()
-            self.themes[themeIndex]["themeName"] = newName
-            self.rebuildThemeList()
-        self.w.themeList.setSelection([themeIndex])
-        self.editSheetClose(None)
-
-
-OpenWindow(ThemeManager)
+if __name__ == "__main__":
+    ThemeManagerWindowController()

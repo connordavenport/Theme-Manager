@@ -13,11 +13,13 @@ resourcesPath = os.path.join(basePath, "resources")
 B = ExtensionBundle()
 
 B.name = "Theme Manager"
-B.version = "1.1.0"
+B.version = "1.1.1"
 B.developer = "Connor Davenport and Andy Clymer"
 B.developerURL = 'http://www.connordavenport.com/ http://www.andyclymer.com/'
 
-B.launchAtStartUp = False
+B.mainScript = 'ThemeManager.py'
+
+B.launchAtStartUp = True
 B.addToMenu = [
     {
         'path' : 'ThemeManager.py',
