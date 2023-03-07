@@ -4,7 +4,7 @@ Get glyph view working
 '''
 
 import os
-from copy import deepcopy
+from copy import deepcopy, copy
 import plistlib
 import AppKit
 import ezui
@@ -43,7 +43,7 @@ class ThemeManagerWindowController(ezui.WindowController):
         > |----------| @themeTable
         > | X | name |
         > |----------|
-        > > ((( {plus} | {minus} | {multiply} ))) @themeTableItemButton
+        > > ((( {plus} | {minus} | {arrow.counterclockwise} ))) @themeTableItemButton
         > > ((( {square.and.arrow.down} | {square.and.arrow.up} ))) @themeFileButton
 
         > ----------
@@ -274,7 +274,7 @@ class ThemeManagerWindowController(ezui.WindowController):
     def unwrapThemeTableItem(self, item):
         item = dict(item)
         del item["themeImage"]
-        theme = deepcopy(item)
+        theme = copy(item)
         return theme
 
     def populateThemeTable(self, userDefinedItems, builtInItems, selection=None):
@@ -349,7 +349,7 @@ class ThemeManagerWindowController(ezui.WindowController):
         elif request == 1:
             self.themeTableRemoveTheme()
         elif request == 2:
-            self.themeTableDuplicateTheme()
+            self.themeTableRefreshThemes()
         else:
             raise NotImplementedError(f"Unknown themeTableItemButton value: {request}")
 
@@ -383,6 +383,10 @@ class ThemeManagerWindowController(ezui.WindowController):
                 remove = i
         del userDefinedItems[i]
         self.populateThemeTable(userDefinedItems, builtInItems)
+
+    def themeTableRefreshThemes(self):
+        self.loadThemes()
+        print("reload")
 
     def themeTableDuplicateTheme(self):
         items = self.themeTable.getSelectedItems()

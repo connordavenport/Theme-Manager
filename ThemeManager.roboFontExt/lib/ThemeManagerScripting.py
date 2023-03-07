@@ -133,18 +133,22 @@ def themeBlender(theme1, theme2, factor, save=False):
                 newTheme[name] = blendedName
                 continue
             elif name == 'themeType':
+                newTheme[name] = "User"
+                continue
+                
+            if name not in theme2.keys():
                 newTheme[name] = value1
-                continue
-            value2 = theme2[name]
-            if isinstance(value1, (int, float)) and isinstance(value2, (int, float)):
-                newTheme[name] = interpolate(value1, value2, factor)
-                continue
-            if len(value1) == len(value2):
-                r = []
-                for i, v1 in enumerate(value1):
-                    v2 = value2[i]
-                    r.append(interpolate(v1, v2, factor))
-                newTheme[name] = r
+            else:
+                value2 = theme2[name]
+                if isinstance(value1, (int, float)) and isinstance(value2, (int, float)):
+                    newTheme[name] = interpolate(value1, value2, factor)
+                    continue
+                if len(value1) == len(value2):
+                    r = []
+                    for i, v1 in enumerate(value1):
+                        v2 = value2[i]
+                        r.append(interpolate(v1, v2, factor))
+                    newTheme[name] = r
     if save:
         pastThemes = loadUserDefinedThemes()
         pastThemes.append(newTheme)
@@ -169,10 +173,13 @@ def applyTheme(themeOrThemeName):
                 break
     else:
         theme = themeOrThemeName
-    for key, val in theme.items():
-        setDefault(key, val)
-    PostNotification("doodle.preferencesChanged")
-
+    if theme:
+        for key, val in theme.items():
+            setDefault(key, val)
+        PostNotification("doodle.preferencesChanged")
+    else:
+        print(f"{themeOrThemeName} does not exist...")
+        
 
 # -----------------
 # Helpers
@@ -180,3 +187,5 @@ def applyTheme(themeOrThemeName):
 
 def interpolate(a, b, f ):
     return a+f*(b-a)
+
+print("setting up module")

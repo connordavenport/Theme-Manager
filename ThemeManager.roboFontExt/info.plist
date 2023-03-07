@@ -22,7 +22,7 @@
 	<key>launchAtStartUp</key>
 	<true/>
 	<key>mainScript</key>
-	<string>ThemeManagerScripting.py</string>
+	<string>launch.py</string>
 	<key>name</key>
 	<string>Theme Manager</string>
 	<key>requiresVersionMajor</key>
@@ -30,8 +30,8 @@
 	<key>requiresVersionMinor</key>
 	<string>1</string>
 	<key>timeStamp</key>
-	<real>1678199286.7992311</real>
+	<real>1678223149.3233089</real>
 	<key>version</key>
-	<string>1.1.1</string>
+	<string>1.1.2</string>
 </dict>
 </plist>
