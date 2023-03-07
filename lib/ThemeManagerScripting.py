@@ -1,5 +1,5 @@
 '''
-Make scripting API seperate file
+Make a ThemeManagerError function
 Get glyph view working
 '''
 
