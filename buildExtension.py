@@ -17,7 +17,7 @@ B.version = "1.1.1"
 B.developer = "Connor Davenport and Andy Clymer"
 B.developerURL = 'http://www.connordavenport.com/ http://www.andyclymer.com/'
 
-B.mainScript = 'ThemeManager.py'
+B.mainScript = 'ThemeManagerScripting.py'
 
 B.launchAtStartUp = True
 B.addToMenu = [

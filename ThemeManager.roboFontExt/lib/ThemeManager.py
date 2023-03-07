@@ -1,3 +1,8 @@
+'''
+Make scripting API seperate file
+Get glyph view working
+'''
+
 import os
 from copy import deepcopy
 import plistlib
@@ -6,170 +11,11 @@ import ezui
 from mojo.UI import getDefault, setDefault
 from mojo.extensions import getExtensionDefault, setExtensionDefault, ExtensionBundle
 from lib.tools.notifications import PostNotification
-
-DEFAULTSKEY = "com.andyclymer.themeManager"
-EXTENSIONBUNDLE = ExtensionBundle("ThemeManager")
-
-# Preference keys and names for the theme settings
-THEMEKEYS = [
-    ("glyphViewOncurvePointsSize", "Oncurve Size", float),
-    ("glyphViewOffCurvePointsSize", "Offcurve Size", float),
-    ("glyphViewStrokeWidth", "Glyph Stroke Width", int),
-    ("glyphViewSelectionStrokeWidth", "Selection Stroke Width", int),
-    ("glyphViewHandlesStrokeWidth", "Handle stroke width", int),
-    ("glyphViewBackgroundColor", "Background Color", tuple),
-    ("glyphViewFillColor", "Fill Color", tuple),
-    ("glyphViewPreviewFillColor", "Preview Fill Color", tuple),
-    ("glyphViewPreviewBackgroundColor", "Preview Background Color", tuple),
-    ("glyphViewAlternateFillColor", "Alternate Fill Color", tuple),
-    ("glyphViewStrokeColor", "Stroke Color", tuple),
-    ("glyphViewCornerPointsFill", "Corner Point Fill Color", tuple),
-    ("glyphViewCornerPointsStroke", "Corner Point Stroke Color", tuple),
-    ("glyphViewCurvePointsFill", "Curve Point Fill Color", tuple),
-    ("glyphViewCurvePointsStroke", "Curve Point Stroke Color", tuple),
-    ("glyphViewTangentPointsFill", "Tangent Fill Color", tuple),
-    ("glyphViewTangentPointsStroke", "Tangent Stroke Color", tuple),
-    ("glyphViewOffCurvePointsFill", "Offcurve Fill Color", tuple),
-    ("glyphViewOffCurveCubicPointsStroke", "Offcurve Stroke Color (Cubic Beziers, PostScript)", tuple),
-    ("glyphViewOffCurveQuadPointsStroke", "Offcurve Stroke Color (Quadratic Beziers, TrueType)", tuple),
-    ("glyphViewSmoothPointStroke", "Smooth Point Color", tuple),
-    ("glyphViewComponentFillColor", "Component Fill Color", tuple),
-    ("glyphViewComponentStrokeColor", "Component Stroke Color", tuple),
-    ("glyphViewComponentInfoColor", "Component Info Text Color", tuple),
-    ("glyphViewImageInfoColor", "Image Info Text Color", tuple),
-    ("glyphViewCubicHandlesStrokeColor", "Handle Stroke Color (Cubic Beziers, PostScript)", tuple),
-    ("glyphViewQuadraticHandlesStrokeColor", "Handle Stroke Color (Quadratic Beziers, TrueType)", tuple),
-    ("glyphViewStartPointsArrowColor", "Start Point Arrow Color for closed contour", tuple),
-    ("glyphViewOpenStartPointsArrowColor", "Start Point Arrow Color for an open contour", tuple),
-    ("glyphViewSelectionColor", "Selection Color", tuple),
-    ("glyphViewSelectionMarqueColor", "Selection Marquee Color", tuple),
-    ("glyphViewPointCoordinateColor", "Point Coordinate Color", tuple),
-    ("glyphViewPointCoordinateBackgroundColor", "Point Coordinate Background Color", tuple),
-    ("glyphViewLocalGuidesColor", "Local Guides Color", tuple),
-    ("glyphViewGlobalGuidesColor", "Global Guides Color", tuple),
-    ("glyphViewFamilyBluesColor", "Family Blues Color", tuple),
-    ("glyphViewBluesColor", "Blues Color", tuple),
-    ("glyphViewAnchorColor", "Anchor Color", tuple),
-    ("glyphViewAnchorTextColor", "Anchor Text Color", tuple),
-    ("glyphViewMarginColor", "Margins Background Color", tuple),
-    ("glyphViewFontMetricsStrokeColor", "Vertical Metrics Color", tuple),
-    ("glyphViewMetricsTitlesColor", "Vertical Metrics Titles Color", tuple),
-    ("glyphViewGridColor", "Grid Color", tuple),
-    ("glyphViewBitmapColor", "Bitmap Color", tuple),
-    ("glyphViewOutlineErrorsColor", "Line Straightness Indicator Color", tuple),
-    ("glyphViewMeasurementsTextColor", "Measurements Text Color", tuple),
-    ("glyphViewMeasurementsForegroundColor", "Measurements Line Color", tuple),
-    ("glyphViewMeasurementsBackgroundColor", "Measurements Secondary Line Color", tuple),
-    ("glyphViewContourIndexColor", "Contour Index Text Color", tuple),
-    ("glyphViewSegmentIndexColor", "Segment Index Text Color", tuple),
-    ("glyphViewPointIndexColor", "Point Index Text Color", tuple),
-    ("glyphViewEchoStrokeColor", "Echo Path Stroke Color", tuple)
-]
-DARKTHEMEKEYS = [(f"{key}.dark",name,val) for (key,name,val) in THEMEKEYS if getDefault(f"{key}.dark")]
-FALLBACKCOLOR = [.5, .5, .5, .5]
+from ThemeManagerScripting import *
 
 PREVIEW_HEIGHT = 600
 WINDOW_WITHOUT_EDITOR_WIDTH = 530
 WINDOW_WITH_EDITOR_WIDTH = 1050
-
-# -------------
-# Scripting API
-# -------------
-
-def loadUserDefinedThemes():
-    userDefinedThemes = getExtensionDefault(DEFAULTSKEY)
-    loaded = []
-    if userDefinedThemes:
-        for theme in userDefinedThemes:
-            for nameKey, name, valueType in THEMEKEYS:
-                if nameKey not in theme:
-                    continue
-                theme[nameKey] = valueType(theme[nameKey])
-            loaded.append(theme)
-    return loaded
-
-def loadBuiltInThemes():
-    presetFolder = os.path.join(
-        EXTENSIONBUNDLE.resourcesPath(),
-        "presetThemes"
-    )
-    loaded = []
-    for fileName in os.listdir(presetFolder):
-        name, ext = os.path.splitext(fileName)
-        if ext == ".roboFontTheme":
-            plistPath = os.path.join(presetFolder, fileName)
-            with open(plistPath, "rb") as themeFile:
-                theme = plistlib.load(themeFile)
-                theme["themeType"] = "Default"
-                loaded.append(theme)
-    return loaded
-
-def loadThemes():
-    themes = loadUserDefinedThemes()
-    themes += loadBuiltInThemes()
-    return themes
-
-def themeBlender(theme1, theme2, factor, save=False):
-    # contributed by Erik van Blokland
-    
-    # gather all of the theme names
-    allThemes = [theme["themeName"] for theme in loadBuiltInThemes]
-    allThemes.extend([theme["themeName"] for theme in getExtensionDefault(DEFAULTSKEY)])
-    newTheme = {}    
-    if theme1 in allThemes and theme2 in allThemes:
-        blendedName = f"A {factor*100:3.1f}% blend between \"{theme1['themeName']}\" and \"{theme2['themeName']}\""
-        for name, value1 in theme1.items():
-            if name == "themeName":
-                newTheme[name] = blendedName
-                continue
-            elif name == 'themeType':
-                newTheme[name] = value1
-                continue
-            value2 = theme2[name]
-            if isinstance(value1, (int, float)) and isinstance(value2, (int, float)):
-                newTheme[name] = interpolate(value1, value2, factor)
-                continue
-            if len(value1) == len(value2):
-                r = []
-                for i, v1 in enumerate(value1):
-                    v2 = value2[i]
-                    r.append(interpolate(v1, v2, factor))
-                newTheme[name] = r
-    if save:
-        pastThemes = loadUserDefinedThemes()
-        pastThemes.append(newTheme)
-        saveThemes(pastThemes)
-        
-    return newTheme
-    
-def saveThemes(themes):
-    themes = [
-        theme for theme in themes
-        if theme["themeType"] == "User"
-    ]
-    setExtensionDefault(DEFAULTSKEY, themes)
-
-def applyTheme(themeOrThemeName):
-    theme = None
-    if isinstance(themeOrThemeName, str):
-        themes = loadThemes()
-        for t in themes:
-            if t["themeName"] == themeOrThemeName:
-                theme = t
-                break
-    else:
-        theme = themeOrThemeName
-    for key, val in theme.items():
-        setDefault(key, val)
-    PostNotification("doodle.preferencesChanged")
-
-
-# -----------------
-# Helpers
-# -----------------
-
-def interpolate(a, b, f ):
-    return a+f*(b-a)
 
 # -----------------
 # Window Controller
@@ -351,6 +197,7 @@ class ThemeManagerWindowController(ezui.WindowController):
         # load the data
         self.loadThemes()
         # set default button states
+        self.selectedTheme = None
         self.w.getItem("themeUndoApplyButton").enable(False)
 
     def started(self):
@@ -460,6 +307,7 @@ class ThemeManagerWindowController(ezui.WindowController):
         if not items:
             raise NotImplementedError("There must be at least one item in themeTable.")
         item = items[0]
+        self.selectedTheme = item
         if isinstance(item, ezui.TableGroupRow):
             return
         colorItems = []
@@ -507,7 +355,12 @@ class ThemeManagerWindowController(ezui.WindowController):
 
     def themeTableAddTheme(self):
         # Read all of the current preferences into a new theme dictionary
-        theme = self.getCurrentUserDefaultsAsTheme()
+        
+        # if holding Shift on +, duplicate the current theme instead of using default
+        if AppKit.NSEvent.modifierFlags() & AppKit.NSShiftKeyMask:
+            theme = self.selectedTheme
+        else:
+            theme = self.getCurrentUserDefaultsAsTheme()
         # Give the theme a default name
         theme["themeName"] = self.findNewThemeName()
         # Get the loaded items
