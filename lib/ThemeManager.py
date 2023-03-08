@@ -8,10 +8,15 @@ from copy import deepcopy, copy
 import plistlib
 import AppKit
 import ezui
+import importlib
 from mojo.UI import getDefault, setDefault
 from mojo.extensions import getExtensionDefault, setExtensionDefault, ExtensionBundle
 from lib.tools.notifications import PostNotification
+import ThemeManagerScripting
 from ThemeManagerScripting import *
+import MerzGlyphView
+importlib.reload(ThemeManagerScripting)
+importlib.reload(MerzGlyphView)
 
 PREVIEW_HEIGHT = 600
 WINDOW_WITHOUT_EDITOR_WIDTH = 530
@@ -226,6 +231,7 @@ class ThemeManagerWindowController(ezui.WindowController):
     def getCurrentUserDefaultsAsTheme(self):
         theme = {}
         for key, name, dataType in THEMEKEYS + DARKTHEMEKEYS:
+            key = renameKeys(key)
             data = getDefault(key)
             data = dataType(data)
             theme[key] = data
@@ -444,6 +450,7 @@ class ThemeManagerWindowController(ezui.WindowController):
         )
         invalidValueTypes = []
         for nameKey, name, valueType in THEMEKEYS + DARKTHEMEKEYS:
+            nameKey = renameKeys(key)
             if nameKey not in themeData:
                 continue
             value = themeData.pop(nameKey)
@@ -530,9 +537,12 @@ class ThemeManagerWindowController(ezui.WindowController):
     # -------
 
     def buildPreview(self):
-        # previewFontPath = os.path.join(EXTENSIONBUNDLE.resourcesPath(), "GlyphPreview.ufo")
-        # self.previewFont = OpenFont(previewFontPath, showInterface=False)
-        # self.previewGlyph = self.previewFont["a"]
+        previewFontPath = os.path.join(EXTENSIONBUNDLE.resourcesPath(), "GlyphPreview.ufo")
+        self.previewFont = OpenFont(previewFontPath, showInterface=False)
+        self.previewGlyph = self.previewFont["a"]
+        
+        print(MerzGlyphView.MerzGlyphView(getThemeData("Connor's New Theme"),(PREVIEW_HEIGHT,PREVIEW_HEIGHT),self.previewGlyph))
+
         container = self.themePreview.getMerzContainer()
         self.previewLightModeContainer = container.appendBaseSublayer(
             position=("center", "top"),

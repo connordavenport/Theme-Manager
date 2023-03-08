@@ -230,7 +230,7 @@
 		<real>0.4861544072628021</real>
 		<real>1.0</real>
 	</array>
-	<key>glyphViewOncurvePointsSize</key>
+	<key>glyphViewOnCurvePointsSize</key>
 	<real>3.0</real>
 	<key>glyphViewOpenStartPointsArrowColor</key>
 	<array>
