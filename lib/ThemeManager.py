@@ -57,7 +57,7 @@ class ThemeManagerWindowController(ezui.WindowController):
         >> (Apply) @themeApplyButton
         >> (Undo) @themeUndoApplyButton
 
-        * MerzView @themePreview
+        * ThemeManagerGlyphView @themePreview
 
         * VerticalStack @editorStack
 
@@ -132,7 +132,7 @@ class ThemeManagerWindowController(ezui.WindowController):
             themePreview=dict(
                 width=300,
                 height=PREVIEW_HEIGHT,
-                backgroundColor=(1, 0, 0 ,1)
+                backgroundColor=(1, 1, 1 ,1)
             ),
 
             editorStack=dict(
@@ -541,9 +541,8 @@ class ThemeManagerWindowController(ezui.WindowController):
         self.previewFont = OpenFont(previewFontPath, showInterface=False)
         self.previewGlyph = self.previewFont["a"]
         
-        print(MerzGlyphView.MerzGlyphView(getThemeData("Connor's New Theme"),(PREVIEW_HEIGHT,PREVIEW_HEIGHT),self.previewGlyph))
-
         container = self.themePreview.getMerzContainer()
+        print(container)
         self.previewLightModeContainer = container.appendBaseSublayer(
             position=("center", "top"),
             size=("width", PREVIEW_HEIGHT / 2),

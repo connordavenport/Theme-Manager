@@ -10,24 +10,25 @@ is changed.
 
 import vanilla
 import merz
+import ezui
 from fontParts.fontshell import RBPoint
 from fontParts.world import OpenFont
-
+from ThemeManagerScripting import getThemeData as gtd
 from mojo.subscriber import Subscriber, WindowController, registerCurrentGlyphSubscriber
 
-class MerzGlyphView():
+class ThemeManagerGlyphView(ezui.MerzView):
 
-    def __init__(self, theme, size, glyph):
-        
-        self.previewGlyph = glyph
-        
-        self.theme = theme
-        self.pointsView = merz.MerzView("auto", backgroundColor=(1,1,1,1))        
-        
-        
-        self.view = self.pointsView
-        self.container = self.view.getMerzContainer()
+    def __init__(self, theme=gtd("Connor's New Theme"), size=100, mode=None, glyph=None, **kwargs):
+        super().__init__(**kwargs)
+
+        if mode == "dark":
+            suffix = ".dark"
+        else:
+            suffix = ""
+            
+        self.container = self.getMerzContainer()
         self.container.clearSublayers()
+        
         
         self.backgroundLayer = self.container.appendRectangleSublayer(
             fillColor=None,
@@ -35,13 +36,13 @@ class MerzGlyphView():
         )
                         
         self.glyphLayer = self.container.appendPathSublayer(
-            fillColor=tuple(self.theme["glyphViewAlternateFillColor.dark"]),
-            strokeColor=tuple(self.theme["glyphViewStrokeColor.dark"]),
+            fillColor=tuple(theme[f"glyphViewAlternateFillColor{suffix}"]),
+            strokeColor=tuple(theme[f"glyphViewStrokeColor{suffix}"]),
             strokeWidth=.5
         )
         
         self.bluesLayer = self.container.appendPathSublayer(
-            fillColor=tuple(self.theme["glyphViewBluesColor.dark"]),
+            fillColor=tuple(theme[f"glyphViewBluesColor{suffix}"]),
             strokeColor=None
         )
         
@@ -61,8 +62,8 @@ class MerzGlyphView():
         )
         
         self.compLayer = self.container.appendPathSublayer(
-            fillColor=tuple(self.theme["glyphViewComponentFillColor.dark"]),
-            strokeColor=tuple(self.theme["glyphViewComponentStrokeColor.dark"]),
+            fillColor=tuple(theme[f"glyphViewComponentFillColor{suffix}"]),
+            strokeColor=tuple(theme[f"glyphViewComponentStrokeColor{suffix}"]),
             strokeWidth=.5
         )
 
@@ -75,8 +76,9 @@ class MerzGlyphView():
         self.ovalCurveLayer.clearSublayers()
         self.compLayer.clearSublayers()
 
-        f = glyph.font
+
         if glyph is not None:
+            f = glyph.font
             viewWidth = size[0]
             viewHeight = size[1]
             verticalMetrics = [
@@ -93,37 +95,34 @@ class MerzGlyphView():
             x = (viewWidth - (glyph.width * scale)) / 2
             y = (viewHeight - fitHeight) / 2
         
-
             self.container.addSublayerTransformation((scale, 0, 0, scale, 40,-80), name="scale&translate")
                                                
             self.backgroundLayer.appendRectangleSublayer(
                 position=(x,0),
                 size=(glyph.width,top),
-                fillColor=tuple(self.theme["glyphViewBackgroundColor.dark"]),
+                fillColor=tuple(theme[f"glyphViewBackgroundColor{suffix}"]),
                 ) 
             self.backgroundLayer.appendRectangleSublayer(
                 position=(-100,0),
                 size=(glyph.width,top),
-                fillColor=tuple(self.theme["glyphViewMarginColor.dark"]),
+                fillColor=tuple(theme[f"glyphViewMarginColor{suffix}"]),
                 )
                                 
             self.glyphLayer.appendPathSublayer(
                 size=(glyph.width, contentHeight),
-                fillColor=tuple(self.theme["glyphViewAlternateFillColor.dark"]),
-                strokeColor=tuple(self.theme["glyphViewStrokeColor.dark"]),
+                fillColor=tuple(theme[f"glyphViewAlternateFillColor{suffix}"]),
+                strokeColor=tuple(theme[f"glyphViewStrokeColor{suffix}"]),
                 strokeWidth=.5
             )
 
-
             if f.info.postscriptBlueValues:
                 blueValues = list(zip(*[iter(f.info.postscriptBlueValues)] * 2))[0]
-                self.drawBlues(blueValues, tuple(self.theme["glyphViewBluesColor.dark"]))
+                self.drawBlues(blueValues, tuple(theme[f"glyphViewBluesColor{suffix}"]))
 
-            self.drawMetrics(f.info.xHeight, tuple(self.theme["glyphViewFontMetricsStrokeColor.dark"]), .5)
-            self.drawMetrics(f.info.capHeight, tuple(self.theme["glyphViewFontMetricsStrokeColor.dark"]), .5)
-            self.drawMetrics(0, tuple(self.theme["glyphViewFontMetricsStrokeColor.dark"]), .5)
+            self.drawMetrics(f.info.xHeight, tuple(theme[f"glyphViewFontMetricsStrokeColor{suffix}"]), .5)
+            self.drawMetrics(f.info.capHeight, tuple(theme[f"glyphViewFontMetricsStrokeColor{suffix}"]), .5)
+            self.drawMetrics(0, tuple(theme[f"glyphViewFontMetricsStrokeColor{suffix}"]), .5)
 
-            
             for component in glyph.components:
                 #self.compLayer.appendPathSublayer()
                 compPath = f[component.baseGlyph].getRepresentation("merz.CGPath")
@@ -145,38 +144,33 @@ class MerzGlyphView():
                      
                             bIn = (float(bPoint.bcpIn[0] + bPoint.anchor[0]), float(bPoint.bcpIn[1] + bPoint.anchor[1]))
                             bOut = (float(bPoint.bcpOut[0] + bPoint.anchor[0]), float(bPoint.bcpOut[1] + bPoint.anchor[1]))
-                            self.drawHandle((bIn,bPoint.anchor),tuple(self.theme["glyphViewCubicHandlesStrokeColor.dark"]),.5)
-                            self.drawHandle((bPoint.anchor,bOut),tuple(self.theme["glyphViewCubicHandlesStrokeColor.dark"]),.5)
+                            self.drawHandle((bIn,bPoint.anchor),tuple(theme[f"glyphViewCubicHandlesStrokeColor{suffix}"]),.5)
+                            self.drawHandle((bPoint.anchor,bOut),tuple(theme[f"glyphViewCubicHandlesStrokeColor{suffix}"]),.5)
 
                         if point.type == "offcurve":
-                            self.drawPoint("oval", (point.x, point.y), self.theme["glyphViewOffCurvePointsSize"], tuple(self.theme["glyphViewOffCurvePointsFill.dark"]), tuple(self.theme["glyphViewOffCurveCubicPointsStroke.dark"]), .5)
+                            self.drawPoint("oval", (point.x, point.y), theme["glyphViewOffCurvePointsSize"], tuple(theme[f"glyphViewOffCurvePointsFill{suffix}"]), tuple(theme[f"glyphViewOffCurveCubicPointsStroke{suffix}"]), .5)
 
                         elif point.type == "curve":
                             if allContPoints[point.index + 1].type == "line":
                                 if point.smooth:
-                                    self.drawPoint("triangle", (point.x, point.y), self.theme["glyphViewOncurvePointsSize"], tuple(self.theme["glyphViewTangentPointsFill.dark"]), tuple(self.theme["glyphViewTangentPointsStroke.dark"]), .5)
+                                    self.drawPoint("triangle", (point.x, point.y), theme["glyphViewOncurvePointsSize"], tuple(theme[f"glyphViewTangentPointsFill{suffix}"]), tuple(theme[f"glyphViewTangentPointsStroke{suffix}"]), .5)
                                 else:
-                                    self.drawPoint("rectangle", (point.x, point.y), self.theme["glyphViewOncurvePointsSize"], tuple(self.theme["glyphViewCornerPointsFill.dark"]), tuple(self.theme["glyphViewCornerPointsStroke.dark"]), .5)
+                                    self.drawPoint("rectangle", (point.x, point.y), theme["glyphViewOncurvePointsSize"], tuple(theme[f"glyphViewCornerPointsFill{suffix}"]), tuple(theme[f"glyphViewCornerPointsStroke{suffix}"]), .5)
                             else:
                                 if point.smooth:
-                                    strokeColor = tuple(self.theme["glyphViewSmoothPointStroke.dark"])
+                                    strokeColor = tuple(theme[f"glyphViewSmoothPointStroke{suffix}"])
                                 else:
-                                    strokeColor = tuple(self.theme["glyphViewCurvePointsStroke.dark"])
-                                self.drawPoint("oval", (point.x, point.y), self.theme["glyphViewOncurvePointsSize"]*1.2, tuple(self.theme["glyphViewCurvePointsFill.dark"]), strokeColor, .5)
+                                    strokeColor = tuple(theme[f"glyphViewCurvePointsStroke{suffix}"])
+                                self.drawPoint("oval", (point.x, point.y), theme[f"glyphViewOncurvePointsSize"]*1.2, tuple(theme[f"glyphViewCurvePointsFill{suffix}"]), strokeColor, .5)
                             
                         elif point.type == "line":
                             if point.smooth:
-                                self.drawPoint("triangle", (point.x, point.y), self.theme["glyphViewOncurvePointsSize"], tuple(self.theme["glyphViewTangentPointsFill.dark"]), tuple(self.theme["glyphViewTangentPointsStroke.dark"]), .5)
+                                self.drawPoint("triangle", (point.x, point.y), theme["glyphViewOncurvePointsSize"], tuple(theme[f"glyphViewTangentPointsFill{suffix}"]), tuple(theme[f"glyphViewTangentPointsStroke{suffix}"]), .5)
                             else:
-                                self.drawPoint("rectangle", (point.x, point.y), self.theme["glyphViewOncurvePointsSize"], tuple(self.theme["glyphViewCornerPointsFill.dark"]), tuple(self.theme["glyphViewCornerPointsStroke.dark"]), .5)
-   
-                            
-                        
+                                self.drawPoint("rectangle", (point.x, point.y), theme["glyphViewOncurvePointsSize"], tuple(theme[f"glyphViewCornerPointsFill{suffix}"]), tuple(theme[f"glyphViewCornerPointsStroke{suffix}"]), .5)
+    
                 for anchor in glyph.anchors:
                     self.drawPoint("oval", (anchor.x, anchor.y), 3, (1,0,0,1), None, 0)
-
-
-
 
     def drawMetrics(self, location, lineStrokeColor, strokeWidth):
         self.linesLayer.appendLineSublayer(
@@ -208,7 +202,6 @@ class MerzGlyphView():
             )
         )
     
-    
     def drawBlues(self, size, blueFillColor):
         width = 1000
         height = (size[1] - size[0])
@@ -221,6 +214,6 @@ class MerzGlyphView():
             )
         )
     
-
-                            
+ezui.registerClass("ThemeManagerGlyphView", ThemeManagerGlyphView)
+    
 
