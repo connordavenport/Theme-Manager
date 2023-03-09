@@ -8,15 +8,24 @@ from copy import deepcopy, copy
 import plistlib
 import AppKit
 import ezui
+from fontParts.fontshell import RBPoint
+from fontParts.world import OpenFont
 import importlib
 from mojo.UI import getDefault, setDefault
 from mojo.extensions import getExtensionDefault, setExtensionDefault, ExtensionBundle
 from lib.tools.notifications import PostNotification
+import ThemeManagerGlyphView
 import ThemeManagerScripting
 from ThemeManagerScripting import *
-import MerzGlyphView
 importlib.reload(ThemeManagerScripting)
-importlib.reload(MerzGlyphView)
+
+# A temporary fix for renamed keys
+renameThemeTypos()
+
+PREVIEW_FONT_PATH = os.path.join(EXTENSIONBUNDLE.resourcesPath(), "GlyphPreview.ufo")
+PREVIEW_FONT = OpenFont(PREVIEW_FONT_PATH, showInterface=False)
+PREVIEW_GLYPH = PREVIEW_FONT["a"]
+
 
 PREVIEW_HEIGHT = 600
 WINDOW_WITHOUT_EDITOR_WIDTH = 530
@@ -28,7 +37,7 @@ WINDOW_WITH_EDITOR_WIDTH = 1050
 
 identifierToStorageKey = dict(
     editorNameField="themeName",
-    editorOnCurveSizeField="glyphViewOncurvePointsSize",
+    editorOnCurveSizeField="glyphViewOnCurvePointsSize",
     editorOffCurveSizeField="glyphViewOffCurvePointsSize",
     editorGlyphStrokeWidthField="glyphViewStrokeWidth",
     editorSelectionStrokeWidthField="glyphViewSelectionStrokeWidth",
@@ -36,11 +45,16 @@ identifierToStorageKey = dict(
 )
 storageKeyToIdentifier = {v:k for k, v in identifierToStorageKey.items()}
 
+
 class ThemeManagerWindowController(ezui.WindowController):
 
     debug = True
 
     def build(self):
+        
+        # store a backup of the current settings
+        self.backupTheme = self.getCurrentUserDefaultsAsTheme()
+
         content = """
         = HorizontalStack
 
@@ -132,7 +146,11 @@ class ThemeManagerWindowController(ezui.WindowController):
             themePreview=dict(
                 width=300,
                 height=PREVIEW_HEIGHT,
-                backgroundColor=(1, 1, 1 ,1)
+                backgroundColor=(1, 1, 1 ,1),
+                theme=self.backupTheme,
+                size=(300,300),
+                mode="",
+                glyph=PREVIEW_GLYPH,
             ),
 
             editorStack=dict(
@@ -190,8 +208,6 @@ class ThemeManagerWindowController(ezui.WindowController):
             title="Theme Manager",
             size=(WINDOW_WITHOUT_EDITOR_WIDTH, "auto")
         )
-        # store a backup of the current settings
-        self.backupTheme = self.getCurrentUserDefaultsAsTheme()
         # store references to the commonly needed items
         self.themeTable = self.w.getItem("themeTable")
         self.editorStack = self.w.getItem("editorStack")
@@ -231,7 +247,6 @@ class ThemeManagerWindowController(ezui.WindowController):
     def getCurrentUserDefaultsAsTheme(self):
         theme = {}
         for key, name, dataType in THEMEKEYS + DARKTHEMEKEYS:
-            key = renameKeys(key)
             data = getDefault(key)
             data = dataType(data)
             theme[key] = data
@@ -328,7 +343,7 @@ class ThemeManagerWindowController(ezui.WindowController):
                     color=color,
                     darkColor=darkColor,
                     name=name,
-                    nameKey=nameKey
+                    nameKey=nameKey,
                 )
                 colorItems.append(colorItem)
             else:
@@ -450,7 +465,6 @@ class ThemeManagerWindowController(ezui.WindowController):
         )
         invalidValueTypes = []
         for nameKey, name, valueType in THEMEKEYS + DARKTHEMEKEYS:
-            nameKey = renameKeys(key)
             if nameKey not in themeData:
                 continue
             value = themeData.pop(nameKey)
@@ -537,28 +551,24 @@ class ThemeManagerWindowController(ezui.WindowController):
     # -------
 
     def buildPreview(self):
-        previewFontPath = os.path.join(EXTENSIONBUNDLE.resourcesPath(), "GlyphPreview.ufo")
-        self.previewFont = OpenFont(previewFontPath, showInterface=False)
-        self.previewGlyph = self.previewFont["a"]
-        
         container = self.themePreview.getMerzContainer()
-        print(container)
-        self.previewLightModeContainer = container.appendBaseSublayer(
-            position=("center", "top"),
-            size=("width", PREVIEW_HEIGHT / 2),
-            backgroundColor=(1, 1, 1, 1)
-        )
-        self.previewDarkModeContainer = container.appendBaseSublayer(
-            position=("center", "bottom"),
-            size=("width", PREVIEW_HEIGHT / 2),
-            backgroundColor=(0, 0, 0, 1)
-        )
-        container.appendBaseSublayer(
-            position=("center", "center"),
-            size=("width", "height"),
-            borderColor=(0.5, 0.5, 0.5, 1),
-            borderWidth=1
-        )
+        
+        # self.previewLightModeContainer = container.appendBaseSublayer(
+        #     position=("center", "top"),
+        #     size=("width", PREVIEW_HEIGHT / 2),
+        #     backgroundColor=(1, 1, 1, 1),
+        # )
+        # self.previewDarkModeContainer = container.appendBaseSublayer(
+        #     position=("center", "bottom"),
+        #     size=("width", PREVIEW_HEIGHT / 2),
+        #     backgroundColor=(0, 0, 0, 1)
+        # )
+        # container.appendBaseSublayer(
+        #     position=("center", "center"),
+        #     size=("width", "height"),
+        #     borderColor=(0.5, 0.5, 0.5, 1),
+        #     borderWidth=1
+        # )
 
     # Editor
     # ------

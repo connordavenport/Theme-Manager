@@ -18,7 +18,7 @@ EXTENSIONBUNDLE = ExtensionBundle("ThemeManager")
 RENAMEMAP = {"glyphViewOncurvePointsSize":"glyphViewOnCurvePointsSize"}
 # Preference keys and names for the theme settings
 THEMEKEYS = [
-    ("glyphViewOncurvePointsSize", "Oncurve Size", float),
+    ("glyphViewOnCurvePointsSize", "Oncurve Size", float),
     ("glyphViewOffCurvePointsSize", "Offcurve Size", float),
     ("glyphViewStrokeWidth", "Glyph Stroke Width", int),
     ("glyphViewSelectionStrokeWidth", "Selection Stroke Width", int),
@@ -84,7 +84,6 @@ def loadUserDefinedThemes():
     if userDefinedThemes:
         for theme in userDefinedThemes:
             for nameKey, name, valueType in THEMEKEYS:
-                nameKey = renameKeys(nameKey)
                 if nameKey not in theme:
                     continue
                 theme[nameKey] = valueType(theme[nameKey])
@@ -180,7 +179,6 @@ def applyTheme(themeOrThemeName):
         theme = themeOrThemeName
     if theme:
         for key, val in theme.items():
-            key = renameKeys(key)
             setDefault(key, val)
         PostNotification("doodle.preferencesChanged")
     else:
@@ -194,9 +192,11 @@ def applyTheme(themeOrThemeName):
 def interpolate(a, b, f ):
     return a+f*(b-a)
     
-def renameKeys(item):
-    # an easy way to fix if Frederik changes a key name
-    if item in RENAMEMAP.keys():
-        return RENAMEMAP[item]
-    else:
-        return item
+def renameThemeTypos():
+    themes = loadUserDefinedThemes()
+    renamedThemes = []
+    for theme in themes:
+        renamedThemes.append({RENAMEMAP.get(k, k): v for k, v in theme.items()})
+    setExtensionDefault(DEFAULTSKEY, renamedThemes)
+    
+    
