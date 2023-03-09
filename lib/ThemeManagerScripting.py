@@ -87,6 +87,11 @@ def loadUserDefinedThemes():
                 if nameKey not in theme:
                     continue
                 theme[nameKey] = valueType(theme[nameKey])
+                
+            # for nameKey, name, valueType in DARKTHEMEKEYS:
+            #     if nameKey not in theme  and nameKey.replace(".dark", "") in theme:
+            #         theme[nameKey] = valueType(theme[nameKey.replace(".dark", "")])
+                    
             loaded.append(theme)
     return loaded
 
@@ -191,6 +196,24 @@ def applyTheme(themeOrThemeName):
 
 def interpolate(a, b, f ):
     return a+f*(b-a)
+    
+def addDarkMode2Themes():
+    themes = loadUserDefinedThemes()
+    fixedThemes = []
+    for theme in themes:
+        newTheme = {}
+        newTheme["themeName"] = theme["themeName"]
+        newTheme["themeType"] = "User"
+        for keyName, _, dataType in THEMEKEYS + DARKTHEMEKEYS:              
+            if keyName in theme:
+                newTheme[keyName] = dataType(theme[keyName])
+            else:
+                light = theme.get(keyName.replace(".dark",""))
+                if light in theme:
+                    newTheme[keyName] = dataType(theme[keyName.replace(".dark","")])            
+            
+        fixedThemes.append(newTheme)    
+    setExtensionDefault(DEFAULTSKEY, fixedThemes)
     
 def renameThemeTypos():
     themes = loadUserDefinedThemes()

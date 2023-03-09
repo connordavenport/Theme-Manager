@@ -11,7 +11,7 @@ is changed.
 import vanilla
 import merz
 import ezui
-from fontParts.fontshell import RBPoint
+from fontParts.fontshell import RBPoint, RGlyph
 from fontParts.world import OpenFont
 from ThemeManagerScripting import getThemeData as gtd
 from mojo.subscriber import Subscriber, WindowController, registerCurrentGlyphSubscriber
@@ -147,9 +147,12 @@ class ThemeManagerGlyphView(ezui.MerzView):
                     #self.compLayer.appendPathSublayer()
                     compPath = f[component.baseGlyph].getRepresentation("merz.CGPath")
                     self.compLayer.setPath(compPath)
-
-        
-                glyphPath = self.glyph.getRepresentation("merz.CGPath")
+                
+                contourGlyph = self.glyph.copy()
+                contourGlyph.clearComponents()
+                for contour in self.glyph:
+                    contourGlyph.appendContour(contour)
+                glyphPath = contourGlyph.getRepresentation("merz.CGPath")
                 self.glyphLayer.setPath(glyphPath)
                 with self.glyphLayer.sublayerGroup():
                     for contour in self.glyph.contours:
