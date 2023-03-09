@@ -55,6 +55,13 @@ class ThemeManagerWindowController(ezui.WindowController):
         # store a backup of the current settings
         self.backupTheme = self.getCurrentUserDefaultsAsTheme()
 
+        if AppKit.NSApp().appearance() == AppKit.NSAppearance.appearanceNamed_(AppKit.NSAppearanceNameDarkAqua):
+            self.mode = "dark"
+            button = 1
+        else:
+            self.mode = "light"
+            button = 0
+            
         content = """
         = HorizontalStack
 
@@ -70,8 +77,11 @@ class ThemeManagerWindowController(ezui.WindowController):
         > * HorizontalStack @themeApplyButtonStack
         >> (Apply) @themeApplyButton
         >> (Undo) @themeUndoApplyButton
+        
+        >> ( {sun.max} | {moon.fill} ) @modeButton
 
         * ThemeManagerGlyphView @themePreview
+
 
         * VerticalStack @editorStack
 
@@ -149,10 +159,11 @@ class ThemeManagerWindowController(ezui.WindowController):
                 backgroundColor=(1, 1, 1 ,1),
                 theme=self.backupTheme,
                 size=(300,300),
-                mode="",
                 glyph=PREVIEW_GLYPH,
             ),
 
+            modeButton=dict(
+            ),
             editorStack=dict(
                 width=500
             ),
@@ -214,12 +225,17 @@ class ThemeManagerWindowController(ezui.WindowController):
         self.editorColorsTable = self.w.getItem("editorColorsTable")
         self.themePreview = self.w.getItem("themePreview")
         # build the preview
-        self.buildPreview()
+        #self.buildPreview()
+        
+        self.themePreview.setTheme(self.backupTheme, self.mode)
+        
+        
         # load the data
         self.loadThemes()
         # set default button states
         self.selectedTheme = None
         self.w.getItem("themeUndoApplyButton").enable(False)
+        self.w.getItem("modeButton").set(button)
 
     def started(self):
         self.w.open()
@@ -350,6 +366,7 @@ class ThemeManagerWindowController(ezui.WindowController):
                 identifier = storageKeyToIdentifier[nameKey]
                 value = item[nameKey]
                 values[identifier] = valueType(value)
+        
         self.editorColorsTable.set(colorItems)
         self.editorStack.setItemValues(values)
         showEditor = item["themeType"] != "Default"
@@ -360,7 +377,7 @@ class ThemeManagerWindowController(ezui.WindowController):
         else:
             self.editorStack.show(False)
             self.w.setPosSize((x, y, WINDOW_WITHOUT_EDITOR_WIDTH, h))
-
+        self.themePreview.setTheme(item,self.mode)
     # creation/destruction
 
     def themeTableItemButtonCallback(self, sender):
@@ -543,6 +560,13 @@ class ThemeManagerWindowController(ezui.WindowController):
         theme = self.unwrapThemeTableItem(item)
         applyTheme(theme)
         self.w.getItem("themeUndoApplyButton").enable(True)
+        
+    def modeButtonCallback(self, sender):
+        if sender.get() == 0:
+            mode = "light"
+        else:
+            mode = "dark"
+        self.themePreview.setTheme(getThemeData("Connor's New Theme"),mode)
 
     def themeUndoApplyButtonCallback(self, sender):
         applyTheme(self.backupTheme)
@@ -552,7 +576,6 @@ class ThemeManagerWindowController(ezui.WindowController):
 
     def buildPreview(self):
         container = self.themePreview.getMerzContainer()
-        
         # self.previewLightModeContainer = container.appendBaseSublayer(
         #     position=("center", "top"),
         #     size=("width", PREVIEW_HEIGHT / 2),
