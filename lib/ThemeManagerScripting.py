@@ -73,6 +73,7 @@ THEMEKEYS = [
 ]
 DARKTHEMEKEYS = [(f"{key}.dark",name,val) for (key,name,val) in THEMEKEYS if getDefault(f"{key}.dark")]
 FALLBACKCOLOR = [.5, .5, .5, .5]
+FALLBACKSIZE = 2
 
 # -------------
 # Scripting API
@@ -150,13 +151,13 @@ def themeBlender(theme1, theme2, factor, save=False):
             else:
                 value2 = theme2[name]
                 if isinstance(value1, (int, float)) and isinstance(value2, (int, float)):
-                    newTheme[name] = interpolate(value1, value2, factor)
+                    newTheme[name] = _interpolate(value1, value2, factor)
                     continue
                 if len(value1) == len(value2):
                     r = []
                     for i, v1 in enumerate(value1):
                         v2 = value2[i]
-                        r.append(interpolate(v1, v2, factor))
+                        r.append(_interpolate(v1, v2, factor))
                     newTheme[name] = r
     if save:
         pastThemes = loadUserDefinedThemes()
@@ -194,25 +195,55 @@ def applyTheme(themeOrThemeName):
 # Helpers
 # -----------------
 
-def interpolate(a, b, f ):
+def _dataConverter(data, dataType):
+    # Thanks Frank:)
+    if data is not None:
+        convertedData = dataType(data)
+    else:
+        if dataType == float:
+            convertedData = float(FALLBACKSIZE)
+        elif dataType == int:
+            convertedData = FALLBACKSIZE
+        else:
+            convertedData = FALLBACKCOLOR
+    return convertedData
+
+def _interpolate(a, b, f ):
     return a+f*(b-a)
     
+def addDarkMode(themeDict):
+    newTheme = {}
+    newTheme["themeName"] = themeDict["themeName"]
+    newTheme["themeType"] = "User"
+    for keyName, _, dataType in THEMEKEYS + DARKTHEMEKEYS:              
+        if keyName in themeDict:
+            newTheme[keyName] = dataType(themeDict[keyName])
+        else:
+            light = keyName.replace(".dark","")
+            if light in themeDict:
+                newTheme[keyName] = dataType(themeDict[light])            
+    return newTheme
+    
+def addMissing(themeDict):
+    newTheme = {}
+    newTheme["themeName"] = themeDict["themeName"]
+    newTheme["themeType"] = "User"
+    for keyName, _, dataType in THEMEKEYS + DARKTHEMEKEYS:              
+        if keyName in themeDict:
+            newTheme[keyName] = dataType(themeDict[keyName])
+        else:
+            data = themeDict.get(keyName)
+            val = _dataConverter(data,dataType)
+            newTheme[keyName] = val
+    return newTheme
+
 def addDarkMode2Themes():
     themes = loadUserDefinedThemes()
     fixedThemes = []
     for theme in themes:
-        newTheme = {}
-        newTheme["themeName"] = theme["themeName"]
-        newTheme["themeType"] = "User"
-        for keyName, _, dataType in THEMEKEYS + DARKTHEMEKEYS:              
-            if keyName in theme:
-                newTheme[keyName] = dataType(theme[keyName])
-            else:
-                light = theme.get(keyName.replace(".dark",""))
-                if light in theme:
-                    newTheme[keyName] = dataType(theme[keyName.replace(".dark","")])            
-            
-        fixedThemes.append(newTheme)    
+        t = addDarkMode(theme)
+        t = addMissing(t)
+        fixedThemes.append(t) 
     setExtensionDefault(DEFAULTSKEY, fixedThemes)
     
 def renameThemeTypos():

@@ -14,9 +14,9 @@
 		</dict>
 	</array>
 	<key>developer</key>
-	<string>Connor Davenport and Andy Clymer</string>
+	<string>Connor Davenport, Andy Clymer, and Tal Leming</string>
 	<key>developerURL</key>
-	<string>http://www.connordavenport.com/ http://www.andyclymer.com/</string>
+	<string>http://www.connordavenport.com/ http://www.andyclymer.com/ https://typesupply.com/</string>
 	<key>html</key>
 	<true/>
 	<key>launchAtStartUp</key>
@@ -30,8 +30,8 @@
 	<key>requiresVersionMinor</key>
 	<string>1</string>
 	<key>timeStamp</key>
-	<real>1678223149.3233089</real>
+	<real>1678477543.84571</real>
 	<key>version</key>
-	<string>1.1.2</string>
+	<string>1.2.0</string>
 </dict>
 </plist>

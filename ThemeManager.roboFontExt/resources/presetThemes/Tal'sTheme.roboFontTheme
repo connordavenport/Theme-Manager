@@ -4,43 +4,43 @@
 <dict>
 	<key>glyphViewAlternateFillColor</key>
 	<array>
-		<real>0.7257</real>
-		<real>0.7256</real>
-		<real>0.7257</real>
-		<real>0.2937</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.2</real>
 	</array>
 	<key>glyphViewAlternateFillColor.dark</key>
 	<array>
-		<real>0.2605</real>
-		<real>0.2605</real>
-		<real>0.2605</real>
-		<real>0.1618</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.2</real>
 	</array>
 	<key>glyphViewAnchorColor</key>
 	<array>
 		<real>1.0</real>
-		<real>0.0</real>
+		<real>0.607843137255</real>
 		<real>0.0</real>
 		<real>1.0</real>
 	</array>
 	<key>glyphViewAnchorColor.dark</key>
 	<array>
 		<real>1.0</real>
-		<real>0.0</real>
+		<real>0.607843137255</real>
 		<real>0.0</real>
 		<real>1.0</real>
 	</array>
 	<key>glyphViewAnchorTextColor</key>
 	<array>
 		<real>1.0</real>
-		<real>0.0</real>
+		<real>0.607843137255</real>
 		<real>0.0</real>
 		<real>1.0</real>
 	</array>
 	<key>glyphViewAnchorTextColor.dark</key>
 	<array>
 		<real>1.0</real>
-		<real>0.0</real>
+		<real>0.607843137255</real>
 		<real>0.0</real>
 		<real>1.0</real>
 	</array>
@@ -53,9 +53,9 @@
 	</array>
 	<key>glyphViewBackgroundColor.dark</key>
 	<array>
-		<real>0.1298</real>
-		<real>0.1298</real>
-		<real>0.1298</real>
+		<real>1.0</real>
+		<real>1.0</real>
+		<real>1.0</real>
 		<real>1.0</real>
 	</array>
 	<key>glyphViewBitmapColor</key>
@@ -74,31 +74,31 @@
 	</array>
 	<key>glyphViewBluesColor</key>
 	<array>
-		<real>0.6326</real>
 		<real>0.0</real>
-		<real>0.9689</real>
-		<real>0.3771</real>
+		<real>0.392156862745</real>
+		<real>1.0</real>
+		<real>0.2</real>
 	</array>
 	<key>glyphViewBluesColor.dark</key>
 	<array>
-		<real>0.6326</real>
 		<real>0.0</real>
-		<real>0.9689</real>
-		<real>0.3771</real>
+		<real>0.392156862745</real>
+		<real>1.0</real>
+		<real>0.2</real>
 	</array>
 	<key>glyphViewComponentFillColor</key>
 	<array>
-		<real>0.1484</real>
-		<real>0.9538</real>
-		<real>0.6962</real>
-		<real>0.313</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.40000000596</real>
 	</array>
 	<key>glyphViewComponentFillColor.dark</key>
 	<array>
-		<real>0.5819</real>
-		<real>0.2157</real>
-		<real>1.0</real>
-		<real>0.1386</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.40000000596</real>
 	</array>
 	<key>glyphViewComponentInfoColor</key>
 	<array>
@@ -117,16 +117,16 @@
 	<key>glyphViewComponentStrokeColor</key>
 	<array>
 		<real>0.0</real>
-		<real>0.0281</real>
-		<real>1.0</real>
-		<real>0.6861</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.3</real>
 	</array>
 	<key>glyphViewComponentStrokeColor.dark</key>
 	<array>
-		<real>1.0</real>
-		<real>0.1857</real>
-		<real>0.5734</real>
-		<real>1.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.3</real>
 	</array>
 	<key>glyphViewContourIndexColor</key>
 	<array>
@@ -144,30 +144,30 @@
 	</array>
 	<key>glyphViewCornerPointsFill</key>
 	<array>
-		<real>0.99</real>
-		<real>0.4719</real>
-		<real>0.0325</real>
+		<real>0.8999999761581421</real>
+		<real>0.8999999761581421</real>
+		<real>0.8999999761581421</real>
 		<real>1.0</real>
 	</array>
 	<key>glyphViewCornerPointsFill.dark</key>
 	<array>
-		<real>0.8838</real>
-		<real>0.6542</real>
-		<real>0.2769</real>
+		<real>0.8999999761581421</real>
+		<real>0.8999999761581421</real>
+		<real>0.8999999761581421</real>
 		<real>1.0</real>
 	</array>
 	<key>glyphViewCornerPointsStroke</key>
 	<array>
-		<real>0.9869</real>
-		<real>0.1778</real>
-		<real>0.0285</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
 		<real>1.0</real>
 	</array>
 	<key>glyphViewCornerPointsStroke.dark</key>
 	<array>
-		<real>0.9869</real>
-		<real>0.1778</real>
-		<real>0.0285</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
 		<real>1.0</real>
 	</array>
 	<key>glyphViewCubicHandlesStrokeColor</key>
@@ -175,70 +175,70 @@
 		<real>0.0</real>
 		<real>0.0</real>
 		<real>0.0</real>
-		<real>0.2171</real>
+		<real>0.1</real>
 	</array>
 	<key>glyphViewCubicHandlesStrokeColor.dark</key>
 	<array>
-		<real>0.5576</real>
-		<real>0.5576</real>
-		<real>0.5576</real>
-		<real>1.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.1</real>
 	</array>
 	<key>glyphViewCurvePointsFill</key>
 	<array>
-		<real>0.1294</real>
-		<real>1.0</real>
-		<real>0.9176</real>
+		<real>0.8999999761581421</real>
+		<real>0.8999999761581421</real>
+		<real>0.8999999761581421</real>
 		<real>1.0</real>
 	</array>
 	<key>glyphViewCurvePointsFill.dark</key>
 	<array>
-		<real>0.1294</real>
-		<real>1.0</real>
-		<real>0.9176</real>
+		<real>0.8999999761581421</real>
+		<real>0.8999999761581421</real>
+		<real>0.8999999761581421</real>
 		<real>1.0</real>
 	</array>
 	<key>glyphViewCurvePointsStroke</key>
 	<array>
 		<real>0.0</real>
-		<real>0.8421</real>
-		<real>0.0238</real>
+		<real>0.0</real>
+		<real>0.0</real>
 		<real>1.0</real>
 	</array>
 	<key>glyphViewCurvePointsStroke.dark</key>
 	<array>
 		<real>0.0</real>
-		<real>0.8421</real>
-		<real>0.0238</real>
+		<real>0.0</real>
+		<real>0.0</real>
 		<real>1.0</real>
 	</array>
 	<key>glyphViewEchoStrokeColor</key>
 	<array>
+		<real>0.6</real>
+		<real>0.6</real>
+		<real>0.6</real>
 		<real>1.0</real>
-		<real>1.0</real>
-		<real>1.0</real>
-		<real>0.3675</real>
 	</array>
 	<key>glyphViewEchoStrokeColor.dark</key>
 	<array>
+		<real>0.6</real>
+		<real>0.6</real>
+		<real>0.6</real>
 		<real>1.0</real>
-		<real>1.0</real>
-		<real>1.0</real>
-		<real>0.3675</real>
 	</array>
 	<key>glyphViewFamilyBluesColor</key>
 	<array>
-		<real>0.1331</real>
-		<real>0.9816</real>
-		<real>0.9394</real>
 		<real>1.0</real>
+		<real>1.0</real>
+		<real>0.0</real>
+		<real>0.3</real>
 	</array>
 	<key>glyphViewFamilyBluesColor.dark</key>
 	<array>
-		<real>0.1331</real>
-		<real>0.9816</real>
-		<real>0.9394</real>
 		<real>1.0</real>
+		<real>1.0</real>
+		<real>0.0</real>
+		<real>0.3</real>
 	</array>
 	<key>glyphViewFillColor</key>
 	<array>
@@ -256,45 +256,45 @@
 	</array>
 	<key>glyphViewFontMetricsStrokeColor</key>
 	<array>
-		<real>0.3478</real>
-		<real>0.3518</real>
-		<real>0.3517</real>
-		<real>0.5</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.1</real>
 	</array>
 	<key>glyphViewFontMetricsStrokeColor.dark</key>
 	<array>
-		<real>0.6969</real>
-		<real>0.6969</real>
-		<real>0.6969</real>
-		<real>0.5</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.1</real>
 	</array>
 	<key>glyphViewGlobalGuidesColor</key>
 	<array>
 		<real>0.0</real>
 		<real>0.0</real>
-		<real>0.9982</real>
-		<real>0.4</real>
+		<real>1.0</real>
+		<real>0.1</real>
 	</array>
 	<key>glyphViewGlobalGuidesColor.dark</key>
 	<array>
 		<real>0.0</real>
 		<real>0.0</real>
-		<real>0.9982</real>
-		<real>0.4</real>
+		<real>1.0</real>
+		<real>0.1</real>
 	</array>
 	<key>glyphViewGridColor</key>
 	<array>
-		<real>0.5</real>
-		<real>0.5</real>
-		<real>0.5</real>
+		<real>0.0</real>
 		<real>1.0</real>
+		<real>1.0</real>
+		<real>0.3</real>
 	</array>
 	<key>glyphViewGridColor.dark</key>
 	<array>
-		<real>0.5</real>
-		<real>0.5</real>
-		<real>0.5</real>
+		<real>0.0</real>
 		<real>1.0</real>
+		<real>1.0</real>
+		<real>0.3</real>
 	</array>
 	<key>glyphViewHandlesStrokeWidth</key>
 	<integer>1</integer>
@@ -317,158 +317,158 @@
 		<real>1.0</real>
 		<real>0.0</real>
 		<real>0.0</real>
-		<real>0.3986</real>
+		<real>0.1</real>
 	</array>
 	<key>glyphViewLocalGuidesColor.dark</key>
 	<array>
 		<real>1.0</real>
 		<real>0.0</real>
 		<real>0.0</real>
-		<real>0.3986</real>
+		<real>0.1</real>
 	</array>
 	<key>glyphViewMarginColor</key>
 	<array>
-		<real>0.0215</real>
-		<real>0.0021</real>
-		<real>0.0025</real>
-		<real>0.1083</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.02</real>
 	</array>
 	<key>glyphViewMarginColor.dark</key>
 	<array>
-		<real>0.1298</real>
-		<real>0.1298</real>
-		<real>0.1298</real>
-		<real>0.9794</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.02</real>
 	</array>
 	<key>glyphViewMeasurementsBackgroundColor</key>
 	<array>
 		<real>0.0</real>
 		<real>0.0</real>
 		<real>0.0</real>
-		<real>0.1953</real>
+		<real>0.5</real>
 	</array>
 	<key>glyphViewMeasurementsBackgroundColor.dark</key>
 	<array>
-		<real>0.4501</real>
-		<real>0.9813</real>
-		<real>0.4743</real>
-		<real>0.2</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.5</real>
 	</array>
 	<key>glyphViewMeasurementsForegroundColor</key>
 	<array>
+		<real>0.0</real>
 		<real>1.0</real>
-		<real>0.2</real>
+		<real>0.0</real>
 		<real>1.0</real>
-		<real>0.734</real>
 	</array>
 	<key>glyphViewMeasurementsForegroundColor.dark</key>
 	<array>
-		<real>0.018</real>
-		<real>0.9984</real>
 		<real>0.0</real>
-		<real>0.2</real>
+		<real>1.0</real>
+		<real>0.0</real>
+		<real>1.0</real>
 	</array>
 	<key>glyphViewMeasurementsTextColor</key>
 	<array>
-		<real>0.4</real>
-		<real>0.2</real>
-		<real>0.8</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
 		<real>1.0</real>
 	</array>
 	<key>glyphViewMeasurementsTextColor.dark</key>
 	<array>
-		<real>0.4501</real>
-		<real>0.9813</real>
-		<real>0.4743</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
 		<real>1.0</real>
 	</array>
 	<key>glyphViewMetricsTitlesColor</key>
 	<array>
-		<real>0.6</real>
-		<real>0.6</real>
-		<real>0.6</real>
-		<real>1.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.1</real>
 	</array>
 	<key>glyphViewMetricsTitlesColor.dark</key>
 	<array>
-		<real>0.6</real>
-		<real>0.6</real>
-		<real>0.6</real>
-		<real>1.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.1</real>
 	</array>
 	<key>glyphViewOffCurveCubicPointsStroke</key>
 	<array>
-		<real>1.0</real>
-		<real>0.6668</real>
-		<real>0.2573</real>
-		<real>1.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.2</real>
 	</array>
 	<key>glyphViewOffCurveCubicPointsStroke.dark</key>
 	<array>
-		<real>1.0</real>
-		<real>0.8323</real>
-		<real>0.4732</real>
-		<real>1.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.2</real>
 	</array>
 	<key>glyphViewOffCurvePointsFill</key>
 	<array>
-		<real>1.0</real>
-		<real>1.0</real>
-		<real>0.0</real>
+		<real>0.8999999761581421</real>
+		<real>0.8999999761581421</real>
+		<real>0.8999999761581421</real>
 		<real>1.0</real>
 	</array>
 	<key>glyphViewOffCurvePointsFill.dark</key>
 	<array>
-		<real>0.9995</real>
-		<real>0.9884</real>
-		<real>0.4727</real>
+		<real>0.8999999761581421</real>
+		<real>0.8999999761581421</real>
+		<real>0.8999999761581421</real>
 		<real>1.0</real>
 	</array>
 	<key>glyphViewOffCurvePointsSize</key>
 	<real>3.0</real>
 	<key>glyphViewOffCurveQuadPointsStroke</key>
 	<array>
+		<real>0.19607843137254902</real>
+		<real>0.39215686274509803</real>
 		<real>1.0</real>
-		<real>0.0</real>
-		<real>0.0</real>
-		<real>0.8</real>
+		<real>1.0</real>
 	</array>
 	<key>glyphViewOffCurveQuadPointsStroke.dark</key>
 	<array>
+		<real>0.19607843137254902</real>
+		<real>0.39215686274509803</real>
 		<real>1.0</real>
-		<real>0.0</real>
-		<real>0.0</real>
-		<real>0.8</real>
+		<real>1.0</real>
 	</array>
 	<key>glyphViewOnCurvePointsSize</key>
 	<real>3.0</real>
 	<key>glyphViewOpenStartPointsArrowColor</key>
 	<array>
 		<real>1.0</real>
-		<real>0.0</real>
-		<real>0.0</real>
-		<real>1.0</real>
+		<real>0.498039215686</real>
+		<real>0.498039215686</real>
+		<real>0.35</real>
 	</array>
 	<key>glyphViewOpenStartPointsArrowColor.dark</key>
 	<array>
 		<real>1.0</real>
-		<real>0.0</real>
-		<real>0.0</real>
-		<real>1.0</real>
+		<real>0.498039215686</real>
+		<real>0.498039215686</real>
+		<real>0.35</real>
 	</array>
 	<key>glyphViewOutlineErrorsColor</key>
 	<array>
-		<real>0.2</real>
-		<real>0.8</real>
 		<real>1.0</real>
-		<real>0.8</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.300000011921</real>
 	</array>
 	<key>glyphViewOutlineErrorsColor.dark</key>
 	<array>
-		<real>0.2</real>
-		<real>0.8</real>
 		<real>1.0</real>
-		<real>0.8</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.300000011921</real>
 	</array>
 	<key>glyphViewPointCoordinateBackgroundColor</key>
 	<array>
@@ -488,15 +488,15 @@
 	<array>
 		<real>0.5</real>
 		<real>0.5</real>
-		<real>0.5024</real>
-		<real>0.4904</real>
+		<real>0.5</real>
+		<real>0.75</real>
 	</array>
 	<key>glyphViewPointCoordinateColor.dark</key>
 	<array>
 		<real>0.5</real>
 		<real>0.5</real>
-		<real>0.5024</real>
-		<real>0.4904</real>
+		<real>0.5</real>
+		<real>0.75</real>
 	</array>
 	<key>glyphViewPointIndexColor</key>
 	<array>
@@ -521,9 +521,9 @@
 	</array>
 	<key>glyphViewPreviewBackgroundColor.dark</key>
 	<array>
-		<real>0.9945</real>
 		<real>1.0</real>
-		<real>0.8926</real>
+		<real>1.0</real>
+		<real>1.0</real>
 		<real>1.0</real>
 	</array>
 	<key>glyphViewPreviewFillColor</key>
@@ -542,15 +542,15 @@
 	</array>
 	<key>glyphViewQuadraticHandlesStrokeColor</key>
 	<array>
+		<real>0.196078431373</real>
+		<real>0.392156862745</real>
 		<real>1.0</real>
-		<real>0.0</real>
-		<real>0.0</real>
-		<real>0.8</real>
+		<real>1.0</real>
 	</array>
 	<key>glyphViewQuadraticHandlesStrokeColor.dark</key>
 	<array>
-		<real>0.0009</real>
-		<real>0.6375</real>
+		<real>0.196078431373</real>
+		<real>0.392156862745</real>
 		<real>1.0</real>
 		<real>1.0</real>
 	</array>
@@ -570,109 +570,109 @@
 	</array>
 	<key>glyphViewSelectionColor</key>
 	<array>
-		<real>0.0602</real>
-		<real>0.5068</real>
-		<real>0.9985</real>
+		<real>1.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
 		<real>1.0</real>
 	</array>
 	<key>glyphViewSelectionColor.dark</key>
 	<array>
-		<real>0.0602</real>
-		<real>0.5068</real>
-		<real>0.9985</real>
+		<real>1.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
 		<real>1.0</real>
 	</array>
 	<key>glyphViewSelectionMarqueColor</key>
 	<array>
-		<real>0.0</real>
-		<real>1.0</real>
-		<real>0.6</real>
-		<real>0.0765</real>
+		<real>0.5</real>
+		<real>0.5</real>
+		<real>0.5</real>
+		<real>0.2</real>
 	</array>
 	<key>glyphViewSelectionMarqueColor.dark</key>
 	<array>
-		<real>0.0</real>
-		<real>1.0</real>
-		<real>0.6</real>
-		<real>0.0765</real>
+		<real>0.5</real>
+		<real>0.5</real>
+		<real>0.5</real>
+		<real>0.2</real>
 	</array>
 	<key>glyphViewSelectionStrokeWidth</key>
-	<integer>2</integer>
+	<integer>1</integer>
 	<key>glyphViewSmoothPointStroke</key>
 	<array>
-		<real>0.0235</real>
-		<real>0.2902</real>
-		<real>1.0</real>
-		<real>1.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
 	</array>
 	<key>glyphViewSmoothPointStroke.dark</key>
 	<array>
-		<real>0.0235</real>
-		<real>0.2902</real>
-		<real>1.0</real>
-		<real>1.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
 	</array>
 	<key>glyphViewStartPointsArrowColor</key>
 	<array>
 		<real>0.0</real>
 		<real>0.0</real>
-		<real>1.0</real>
-		<real>0.4269</real>
+		<real>0.0</real>
+		<real>0.2</real>
 	</array>
 	<key>glyphViewStartPointsArrowColor.dark</key>
 	<array>
 		<real>0.0</real>
 		<real>0.0</real>
-		<real>1.0</real>
-		<real>0.4269</real>
+		<real>0.0</real>
+		<real>0.2</real>
 	</array>
 	<key>glyphViewStrokeColor</key>
 	<array>
-		<real>0.0737</real>
-		<real>0.2543</real>
-		<real>0.7008</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
 		<real>1.0</real>
 	</array>
 	<key>glyphViewStrokeColor.dark</key>
 	<array>
-		<real>0.4756</real>
-		<real>0.4756</real>
-		<real>0.4756</real>
+		<real>0.0</real>
+		<real>0.0</real>
+		<real>0.0</real>
 		<real>1.0</real>
 	</array>
 	<key>glyphViewStrokeWidth</key>
 	<integer>1</integer>
 	<key>glyphViewTangentPointsFill</key>
 	<array>
-		<real>0.9034</real>
-		<real>0.5904</real>
-		<real>0.9101</real>
+		<real>0.8999999761581421</real>
+		<real>0.8999999761581421</real>
+		<real>0.8999999761581421</real>
 		<real>1.0</real>
 	</array>
 	<key>glyphViewTangentPointsFill.dark</key>
 	<array>
-		<real>0.9034</real>
-		<real>0.5904</real>
-		<real>0.9101</real>
+		<real>0.8999999761581421</real>
+		<real>0.8999999761581421</real>
+		<real>0.8999999761581421</real>
 		<real>1.0</real>
 	</array>
 	<key>glyphViewTangentPointsStroke</key>
 	<array>
-		<real>0.9767</real>
 		<real>0.0</real>
-		<real>0.9491</real>
+		<real>0.0</real>
+		<real>0.0</real>
 		<real>1.0</real>
 	</array>
 	<key>glyphViewTangentPointsStroke.dark</key>
 	<array>
-		<real>0.9767</real>
 		<real>0.0</real>
-		<real>0.9491</real>
+		<real>0.0</real>
+		<real>0.0</real>
 		<real>1.0</real>
 	</array>
 	<key>themeName</key>
-	<string>Connor's New Theme</string>
+	<string>Tal's Theme</string>
 	<key>themeType</key>
-	<string>User</string>
+	<string>Default</string>
 </dict>
 </plist>
