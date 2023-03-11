@@ -1,6 +1,9 @@
 '''
 Make scripting API seperate file
 Get glyph view working
+
+
+fix crashing on new selection
 '''
 
 import os
@@ -52,10 +55,11 @@ class ThemeManagerWindowController(ezui.WindowController):
         themeScripter.renameThemeTypos()
         themeScripter.addDarkMode2Themes()
         
-        self.themes = []
+        # self.themes = []
         # store a backup of the current settings
         self.backupTheme = self.getCurrentUserDefaultsAsTheme()
-        
+        self.s = 0
+
         if AppKit.NSApp().appearance() == AppKit.NSAppearance.appearanceNamed_(AppKit.NSAppearanceNameDarkAqua):
             self.mode = "dark"
             button = 1
@@ -236,11 +240,10 @@ class ThemeManagerWindowController(ezui.WindowController):
         # self.glyphStroke = self.w.getItem("editorGlyphStrokeWidthField")
         # self.selectionStroke = self.w.getItem("editorSelectionStrokeWidthField")
         # self.handleStroke = self.w.getItem("editorHandleStrokeWidthField")
-                
+        self.selectedTheme = self.backupTheme  
         # load the data
         self.loadThemes()
         # set default button states
-        self.selectedTheme = self.backupTheme
         self.w.getItem("themeUndoApplyButton").enable(False)
         self.w.getItem("modeButton").enable(False)
         self.w.getItem("modeButton").set(button)
@@ -322,7 +325,7 @@ class ThemeManagerWindowController(ezui.WindowController):
         theme = copy(item)
         return theme
 
-    def populateThemeTable(self, userDefinedItems, builtInItems, selection=None):
+    def populateThemeTable(self, userDefinedItems, builtInItems, selection=None, oldTheme=None):
         items = (
               [ezui.TableGroupRow("Your Themes")]
             + userDefinedItems
@@ -332,7 +335,11 @@ class ThemeManagerWindowController(ezui.WindowController):
         self.themeTable.set(items)
         if selection is not None:
             # select the specified theme
-            name = selection["themeName"]
+            if oldTheme:
+                name = oldTheme["themeName"]
+            else:
+                name = selection["themeName"]
+
             for i, item in enumerate(items):
                 if isinstance(item, ezui.TableGroupRow):
                     continue
@@ -350,10 +357,15 @@ class ThemeManagerWindowController(ezui.WindowController):
 
     def themeTableSelectionCallback(self, sender):
         self.w.getItem("modeButton").enable(True)
+
         items = sender.getSelectedItems()
         if not items:
             raise NotImplementedError("There must be at least one item in themeTable.")
         item = items[0]
+
+        if self.selectedTheme.get("themeName"):
+            self.insertTheme(self.selectedTheme, item)
+
         self.selectedTheme = item
         if isinstance(item, ezui.TableGroupRow):
             return
@@ -390,11 +402,12 @@ class ThemeManagerWindowController(ezui.WindowController):
         self.themePreview.setTheme(item,self.mode)
     # creation/destruction
     
-    def insertTheme(self, themeData):
+    def insertTheme(self, themeData, oldTheme=None):
         userDefinedItems, builtInItems = self.getThemeTableItems()
         index = userDefinedItems.index([t for t in userDefinedItems if t["themeName"] == themeData["themeName"]][0])
         userDefinedItems[index] = themeData
-        self.populateThemeTable(userDefinedItems, builtInItems, themeData)
+
+        self.populateThemeTable(userDefinedItems, builtInItems, themeData, oldTheme)
 
     def themeTableItemButtonCallback(self, sender):
         request = sender.get()
@@ -421,7 +434,7 @@ class ThemeManagerWindowController(ezui.WindowController):
         userDefinedItems, builtInItems = self.getThemeTableItems()
         item = self.wrapThemeTableItem(theme, themeType="User")
         userDefinedItems.append(item)
-        self.themes.append(item)
+        # self.themes.append(item)
         self.populateThemeTable(userDefinedItems, builtInItems, selection=item)
 
     def themeTableRemoveTheme(self):
@@ -437,11 +450,6 @@ class ThemeManagerWindowController(ezui.WindowController):
             if theme["themeName"] == themeName:
                 remove = i
         del userDefinedItems[i]
-        
-        for i, theme in enumerate(self.themes):
-            if theme["themeName"] == themeName:
-                remove = i
-        del self.themes[i]
         self.populateThemeTable(userDefinedItems, builtInItems)
 
     def themeTableRefreshThemes(self):
@@ -457,7 +465,7 @@ class ThemeManagerWindowController(ezui.WindowController):
         item = self.wrapThemeTableItem(theme, themeType="User")
         userDefinedItems, builtInItems = self.getThemeTableItems()
         userDefinedItems.append(item)
-        self.themes.append(item)
+        # self.themes.append(item)
         self.populateThemeTable(userDefinedItems, builtInItems)
 
     def findNewThemeName(self):
@@ -537,7 +545,7 @@ class ThemeManagerWindowController(ezui.WindowController):
         validated["themeName"] = themeName
         item = self.wrapThemeTableItem(validated)
         userDefinedItems.append(item)
-        self.themes.append(item)
+        # self.themes.append(item)
         self.populateThemeTable(userDefinedItems, builtInItems, selection=item)
         if validityMessage:
             AppKit.NSBeep()
@@ -608,37 +616,35 @@ class ThemeManagerWindowController(ezui.WindowController):
             self.selectedTheme[nameKey] = color
             self.selectedTheme[nameKey + ".dark"] = darkColor
         self.themePreview.setTheme(self.selectedTheme,self.mode)
-        self.insertTheme(self.selectedTheme)
 
     def editorOnCurveSizeFieldCallback(self,sender):
         nameKey = "glyphViewOnCurvePointsSize"
         self.selectedTheme[nameKey] = sender.get()
         self.themePreview.setTheme(self.selectedTheme,self.mode)
-        self.insertTheme(self.selectedTheme)
                 
     def editorOffCurveSizeFieldCallback(self,sender):
         nameKey = "glyphViewOffCurvePointsSize"
         self.selectedTheme[nameKey] = sender.get()
         self.themePreview.setTheme(self.selectedTheme,self.mode)
-        self.insertTheme(self.selectedTheme)
         
     def editorGlyphStrokeWidthFieldCallback(self,sender):
         nameKey = "glyphViewStrokeWidth"
         self.selectedTheme[nameKey] = sender.get()
         self.themePreview.setTheme(self.selectedTheme,self.mode)
-        self.insertTheme(self.selectedTheme)
         
     def editorSelectionStrokeWidthFieldCallback(self,sender):
         nameKey = "glyphViewSelectionStrokeWidth"
         self.selectedTheme[nameKey] = sender.get()
         self.themePreview.setTheme(self.selectedTheme,self.mode)
-        self.insertTheme(self.selectedTheme)
         
     def editorHandleStrokeWidthFieldCallback(self,sender):
         nameKey = "glyphViewHandlesStrokeWidth"
         self.selectedTheme[nameKey] = sender.get()
         self.themePreview.setTheme(self.selectedTheme,self.mode)
-        self.insertTheme(self.selectedTheme)
+
+    def editorNameFieldCallback(self, sender):
+        nameKey = "themeName"
+        self.selectedTheme[nameKey] = sender.get()
         
     # Editor
     # ------
