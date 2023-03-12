@@ -1,11 +1,3 @@
-'''
-Make scripting API seperate file
-Get glyph view working
-
-
-fix crashing on new selection
-'''
-
 import os
 from copy import deepcopy, copy
 import plistlib
@@ -261,14 +253,18 @@ class ThemeManagerWindowController(ezui.WindowController):
         # user defined themes
         userDefinedThemes = themeScripter.loadUserDefinedThemes()
         userDefinedItems = self.wrapThemeTableItems(userDefinedThemes, themeType="User")
+        self.themeLengths = len(userDefinedItems)
         # built-in themes
         builtInThemes = themeScripter.loadBuiltInThemes()
         builtInItems = self.wrapThemeTableItems(builtInThemes, themeType="Default")
         self.populateThemeTable(userDefinedItems, builtInItems)
 
-    def saveThemes(self):
+    def saveThemes(self, overrideThemes=None):
         userDefinedItems, builtInItems = self.getThemeTableItems()
-        themes = [self.unwrapThemeTableItem(item) for item in userDefinedItems]
+        if overrideThemes:
+            themes = overrideThemes
+        else:
+            themes = [self.unwrapThemeTableItem(item) for item in userDefinedItems]
         themeScripter.saveThemes(themes)
 
     def getCurrentUserDefaultsAsTheme(self):
@@ -325,7 +321,7 @@ class ThemeManagerWindowController(ezui.WindowController):
         theme = copy(item)
         return theme
 
-    def populateThemeTable(self, userDefinedItems, builtInItems, selection=None, oldTheme=None):
+    def populateThemeTable(self, userDefinedItems, builtInItems, selection=None):
         items = (
               [ezui.TableGroupRow("Your Themes")]
             + userDefinedItems
@@ -335,11 +331,7 @@ class ThemeManagerWindowController(ezui.WindowController):
         self.themeTable.set(items)
         if selection is not None:
             # select the specified theme
-            if oldTheme:
-                name = oldTheme["themeName"]
-            else:
-                name = selection["themeName"]
-
+            name = selection["themeName"]
             for i, item in enumerate(items):
                 if isinstance(item, ezui.TableGroupRow):
                     continue
@@ -363,9 +355,10 @@ class ThemeManagerWindowController(ezui.WindowController):
             raise NotImplementedError("There must be at least one item in themeTable.")
         item = items[0]
 
-        if self.selectedTheme.get("themeName"):
-            self.insertTheme(self.selectedTheme, item)
+        if self.s >= 1 and self.themeLengths == len(self.getThemeTableItems()[0]):
+            self.insertTheme(self.selectedTheme)
 
+        self.themeLengths = len(self.getThemeTableItems()[0])
         self.selectedTheme = item
         if isinstance(item, ezui.TableGroupRow):
             return
@@ -400,14 +393,16 @@ class ThemeManagerWindowController(ezui.WindowController):
             self.editorStack.show(False)
             self.w.setPosSize((x, y, WINDOW_WITHOUT_EDITOR_WIDTH, h))
         self.themePreview.setTheme(item,self.mode)
+
+        self.s += 1
     # creation/destruction
     
-    def insertTheme(self, themeData, oldTheme=None):
+    def insertTheme(self, themeData):
         userDefinedItems, builtInItems = self.getThemeTableItems()
         index = userDefinedItems.index([t for t in userDefinedItems if t["themeName"] == themeData["themeName"]][0])
         userDefinedItems[index] = themeData
-
-        self.populateThemeTable(userDefinedItems, builtInItems, themeData, oldTheme)
+        self.themeLengths = len(userDefinedItems)
+        self.saveThemes(userDefinedItems)
 
     def themeTableItemButtonCallback(self, sender):
         request = sender.get()
@@ -422,7 +417,6 @@ class ThemeManagerWindowController(ezui.WindowController):
 
     def themeTableAddTheme(self):
         # Read all of the current preferences into a new theme dictionary
-            
         # if holding Shift on +, duplicate the current theme instead of using default
         if AppKit.NSEvent.modifierFlags() & AppKit.NSShiftKeyMask:
             theme = self.selectedTheme
@@ -449,8 +443,9 @@ class ThemeManagerWindowController(ezui.WindowController):
         for i, theme in enumerate(userDefinedItems):
             if theme["themeName"] == themeName:
                 remove = i
-        del userDefinedItems[i]
+        del userDefinedItems[remove]
         self.populateThemeTable(userDefinedItems, builtInItems)
+        # self.themeLengths = len(userDefinedItems)
 
     def themeTableRefreshThemes(self):
         self.loadThemes()
@@ -581,7 +576,7 @@ class ThemeManagerWindowController(ezui.WindowController):
             themeType="User"
         )
         for key, name, valueType in themeScripter.THEMEKEYS + themeScripter.DARKTHEMEKEYS:
-            data = themeStorage.get(key)
+            data = theme.get(key)
             v = themeScripter._dataConverter(data, valueType)
             themeStorage[key] = v
         with open(path, "wb") as themeFile:

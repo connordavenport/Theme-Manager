@@ -1,11 +1,6 @@
 """
-Window showing info about the current glyph
-
-This example shows a floating window that displays information
-about the current glyph. The window knows when the user has
-switched the current glyph and updates accordingly. The displayed
-information is updated when the data within the current glyph
-is changed.
+A custom roboFont glyphView written in Merz
+it works but its not perfect:)
 """
 
 import vanilla
@@ -193,7 +188,7 @@ class ThemeManagerGlyphView(ezui.MerzView):
                 self.drawPoint("oval", (measurements[1][0], measurementLine[1][1]), self.glyphViewOnCurvePointsSize * .8, self.glyphViewMeasurementsBackgroundColor, None, None)
                 self.drawPoint("oval", (measurements[0][0], measurementLine[1][1]), self.glyphViewOnCurvePointsSize * .8, self.glyphViewMeasurementsBackgroundColor, None, None)
 
-                loc = themeScripter._interpolate(measurementLine[0][0], measurementLine[1][0], .5) - 80,  themeScripter._interpolate(measurementLine[0][1], measurementLine[1][1], .5)
+                loc = themeScripter._interpolate(measurementLine[0][0], measurementLine[1][0], .5) - 80,  themeScripter._interpolate(measurementLine[0][1], measurementLine[1][1], .5) - 20
 
                 distance = round(math.sqrt((measurementLine[0][0]-measurementLine[1][0])**2 + (measurementLine[0][1]-measurementLine[1][1])**2), 2)
                 self.drawCaption(loc, f"{distance}", self.glyphViewMeasurementsTextColor, "top", "center")
