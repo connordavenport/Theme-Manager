@@ -53,6 +53,7 @@ class ThemeManagerWindowController(ezui.WindowController):
         # store a backup of the current settings
         self.backupTheme = self.getCurrentUserDefaultsAsTheme()
         self.s = 0
+        self.magicVal = None
 
         if AppKit.NSApp().appearance() == AppKit.NSAppearance.appearanceNamed_(AppKit.NSAppearanceNameDarkAqua):
             self.mode = "dark"
@@ -588,24 +589,36 @@ class ThemeManagerWindowController(ezui.WindowController):
     # apply/undo
     
     def themeAutoDarkModeButtonCallback(self, sender):
-        background = contrast.getPercievedColor(contrast.invertColor(self.selectedTheme["glyphViewBackgroundColor"]), contrast.invertColor(self.selectedTheme["glyphViewMarginColor"]))
-        for keyName, _, dataType in themeScripter.THEMEKEYS:
-            self.selectedTheme[keyName] = dataType(self.selectedTheme[keyName])
-        for keyName, _, dataType in themeScripter.DARKTHEMEKEYS:
-            if dataType == tuple:
-                if keyName in ["glyphViewBackgroundColor.dark", "glyphViewMarginColor.dark"]:
-                    color = contrast.invertColor(self.selectedTheme[keyName])
-                else:
-                    c = self.selectedTheme[keyName.replace(".dark", "")]
-                    ic = contrast.invertColor(c)
-                    df = contrast.rgb(c,background)
-                    at = contrast.rgb(ic,background)
-                    if at > df:
-                        color = ic
+        self.showAsk(
+            messageText="This will create an automatic dark mode.",
+            informativeText="It will be based on an your default theme, inverted, while attempting to be WCAG complient.",
+            buttonTitles=[
+                dict(title="Okay", returnCode="okay"),
+                dict(title="Cancel", returnCode="cancel"),
+            ],
+            callback=self.showAskResultCallback,
+        )
+    
+    def showAskResultCallback(self, value):
+        if value == "okay":
+            background = contrast.getPercievedColor(contrast.invertColor(self.selectedTheme["glyphViewBackgroundColor"]), contrast.invertColor(self.selectedTheme["glyphViewMarginColor"]))
+            for keyName, _, dataType in themeScripter.THEMEKEYS:
+                self.selectedTheme[keyName] = dataType(self.selectedTheme[keyName])
+            for keyName, _, dataType in themeScripter.DARKTHEMEKEYS:
+                if dataType == tuple:
+                    if keyName in ["glyphViewBackgroundColor.dark", "glyphViewMarginColor.dark"]:
+                        color = contrast.invertColor(self.selectedTheme[keyName])
                     else:
-                        color = c
-                self.selectedTheme[keyName] = dataType([round(i,4) for i in color])
-        self.themePreview.setTheme(self.selectedTheme,self.mode)
+                        c = self.selectedTheme[keyName.replace(".dark", "")]
+                        ic = contrast.invertColor(c)
+                        df = contrast.rgb(c,background)
+                        at = contrast.rgb(ic,background)
+                        if at > df:
+                            color = ic
+                        else:
+                            color = c
+                    self.selectedTheme[keyName] = dataType([round(i,4) for i in color])
+            self.themePreview.setTheme(self.selectedTheme,self.mode)
 
     def themeApplyButtonCallback(self, sender):
         items = self.themeTable.getSelectedItems()
