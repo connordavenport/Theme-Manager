@@ -11,6 +11,9 @@ import plistlib
 from mojo.UI import getDefault, setDefault
 from mojo.extensions import getExtensionDefault, setExtensionDefault, ExtensionBundle
 from lib.tools.notifications import PostNotification
+import WCAGContrastRatio as contrast
+import importlib
+importlib.reload(contrast)
 
 DEFAULTSKEY = "com.andyclymer.themeManager"
 EXTENSIONBUNDLE = ExtensionBundle("ThemeManager")
@@ -245,6 +248,7 @@ def addDarkMode2Themes():
         t = addMissing(t)
         fixedThemes.append(t) 
     setExtensionDefault(DEFAULTSKEY, fixedThemes)
+    
     
 def renameThemeTypos():
     themes = loadUserDefinedThemes()

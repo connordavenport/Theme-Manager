@@ -13,7 +13,9 @@ from lib.tools.notifications import PostNotification
 from lib.tools.misc import NSColorToRgba
 import ThemeManagerGlyphView
 import ThemeManagerScripting as themeScripter
+import WCAGContrastRatio as contrast
 importlib.reload(themeScripter)
+importlib.reload(contrast)
 
 PREVIEW_FONT_PATH = os.path.join(themeScripter.EXTENSIONBUNDLE.resourcesPath(), "GlyphPreview.ufo")
 PREVIEW_FONT = OpenFont(PREVIEW_FONT_PATH, showInterface=False)
@@ -92,6 +94,7 @@ class ThemeManagerWindowController(ezui.WindowController):
         > |--------------| @editorColorsTable
         > | C | C | name |
         > |--------------|
+        > ({wand.and.stars}) @themeAutoDarkModeButton        
 
         > !§ Sizes
         > --------
@@ -355,8 +358,8 @@ class ThemeManagerWindowController(ezui.WindowController):
             raise NotImplementedError("There must be at least one item in themeTable.")
         item = items[0]
 
-        if self.s >= 1 and self.themeLengths == len(self.getThemeTableItems()[0]):
-            self.insertTheme(self.selectedTheme)
+        # if self.s >= 1 and self.themeLengths == len(self.getThemeTableItems()[0]):
+        #     self.insertTheme(self.selectedTheme)
 
         self.themeLengths = len(self.getThemeTableItems()[0])
         self.selectedTheme = item
@@ -583,6 +586,26 @@ class ThemeManagerWindowController(ezui.WindowController):
             plistlib.dump(themeStorage, themeFile)
 
     # apply/undo
+    
+    def themeAutoDarkModeButtonCallback(self, sender):
+        background = contrast.getPercievedColor(contrast.invertColor(self.selectedTheme["glyphViewBackgroundColor"]), contrast.invertColor(self.selectedTheme["glyphViewMarginColor"]))
+        for keyName, _, dataType in themeScripter.THEMEKEYS:
+            self.selectedTheme[keyName] = dataType(self.selectedTheme[keyName])
+        for keyName, _, dataType in themeScripter.DARKTHEMEKEYS:
+            if dataType == tuple:
+                if keyName in ["glyphViewBackgroundColor.dark", "glyphViewMarginColor.dark"]:
+                    color = contrast.invertColor(self.selectedTheme[keyName])
+                else:
+                    c = self.selectedTheme[keyName.replace(".dark", "")]
+                    ic = contrast.invertColor(c)
+                    df = contrast.rgb(c,background)
+                    at = contrast.rgb(ic,background)
+                    if at > df:
+                        color = ic
+                    else:
+                        color = c
+                self.selectedTheme[keyName] = dataType([round(i,4) for i in color])
+        self.themePreview.setTheme(self.selectedTheme,self.mode)
 
     def themeApplyButtonCallback(self, sender):
         items = self.themeTable.getSelectedItems()
