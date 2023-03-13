@@ -15,31 +15,37 @@ from mojo.UI import getDefault, setDefault
 from mojo.extensions import getExtensionDefault, setExtensionDefault, ExtensionBundle
 from lib.tools.notifications import PostNotification
 import ThemeManagerScripting as themeScripter
-     
+importlib.reload(themeScripter)
             
-themes = themeScripter.loadUserDefinedThemes()
-setExtensionDefault(themeScripter.DEFAULTSKEY, {})
+# themes = themeScripter.loadUserDefinedThemes()
+# getExtensionDefault(themeScripter.DEFAULTSKEY, {})
+
+
+theme = themeScripter.getThemeData("Tal's Theme")
+iv = themeScripter.addFauxDarkMode(theme,False)
+
+print(iv)
     
+#     # print(theme["themeName"])
     
-    # print(theme["themeName"])
-    
-    # themeStorage = dict(
-    #     themeName=theme["themeName"],
-    #     themeType="Default"
-    # )
+#     # themeStorage = dict(
+#     #     themeName=theme["themeName"],
+#     #     themeType="Default"
+#     # )
         
-    # for keyName, _, dataType in THEMEKEYS:
-    #     themeStorage[keyName]  =  dataType(theme[keyName])
+#     # for keyName, _, dataType in THEMEKEYS:
+#     #     themeStorage[keyName]  =  dataType(theme[keyName])
             
-    # for keyName, _, dataType in DARKTHEMEKEYS:
-    #     if keyName in theme:
-    #         themeStorage[keyName]  =  dataType(theme[keyName])
-    #     else:
-    #         themeStorage[keyName]  =  dataType(theme[keyName.replace(".dark","")])
+#     # for keyName, _, dataType in DARKTHEMEKEYS:
+#     #     if keyName in theme:
+#     #         themeStorage[keyName]  =  dataType(theme[keyName])
+#     #     else:
+#     #         themeStorage[keyName]  =  dataType(theme[keyName.replace(".dark","")])
 
-    # fileName = f"{theme['themeName'].replace(' ','')}.roboFontTheme"
+#     # fileName = f"{theme['themeName'].replace(' ','')}.roboFontTheme"
     
-    # with open(fileName, "wb") as themeFile:
-    #     plistlib.dump(themeStorage, themeFile)
+#     # with open(fileName, "wb") as themeFile:
+#     #     plistlib.dump(themeStorage, themeFile)
 
-    # print(themeStorage)
+#     # print(themeStorage)
+

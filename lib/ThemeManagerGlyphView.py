@@ -22,6 +22,45 @@ class ThemeManagerGlyphView(ezui.MerzView):
         self.theme = theme
         self.container = self.getMerzContainer()
         self.container.clearSublayers()
+        self.backgroundLayer = self.container.appendRectangleSublayer(
+            fillColor=None,
+            strokeColor=None
+        )
+        self.glyphLayer = self.container.appendPathSublayer(
+            fillColor=None,
+            strokeColor=None,
+            strokeWidth=None
+        )
+        self.bluesLayer = self.container.appendPathSublayer(
+            fillColor=None,
+            strokeColor=None
+        )
+        self.handleLayer = self.container.appendPathSublayer(
+            fillColor=None,
+            strokeColor=None,
+            strokeWidth=None
+        )
+        self.linesLayer = self.container.appendPathSublayer(
+            fillColor=None,
+            strokeColor=None
+        )
+        self.ovalCurveLayer = self.container.appendPathSublayer(
+            fillColor=None,
+            strokeColor=None
+        )
+        self.compLayer = self.container.appendPathSublayer(
+            fillColor=None,
+            strokeColor=None,
+            strokeWidth=.5
+        )
+
+        self.textLayer = self.container.appendTextLineSublayer(
+           backgroundColor=None,
+           text="",
+           fillColor=None,
+           horizontalAlignment="center"
+        )
+
 
         
     def setTheme(self, theme, mode):
@@ -60,57 +99,11 @@ class ThemeManagerGlyphView(ezui.MerzView):
         self.glyphViewAnchorColor                 = tuple(theme[f"glyphViewAnchorColor{suffix}"])
         self.glyphViewAnchorTextColor             = tuple(theme[f"glyphViewAnchorTextColor{suffix}"])
 
-
-
-        self.backgroundLayer = self.container.appendRectangleSublayer(
-            fillColor=self.glyphViewMarginColor,
-            strokeColor=None
-        )
-        self.glyphLayer = self.container.appendPathSublayer(
-            fillColor=self.glyphViewAlternateFillColor,
-            strokeColor=self.glyphViewStrokeColor,
-            strokeWidth=(self.glyphViewStrokeWidth/2)
-        )
-        self.bluesLayer = self.container.appendPathSublayer(
-            fillColor=None,
-            strokeColor=None
-        )
-        self.handleLayer = self.container.appendPathSublayer(
-            fillColor=None,
-            strokeColor=None,
-            strokeWidth=(self.glyphViewHandlesStrokeWidth/2)
-        )
-        self.measurementLayer = self.container.appendPathSublayer(
-            fillColor=None,
-            strokeColor=None,
-            strokeWidth=(self.glyphViewHandlesStrokeWidth/2)
-        )
-        self.linesLayer = self.container.appendPathSublayer(
-            fillColor=None,
-            strokeColor=None
-        )
-        self.ovalCurveLayer = self.container.appendPathSublayer(
-            fillColor=None,
-            strokeColor=None
-        )
-        self.compLayer = self.container.appendPathSublayer(
-            fillColor=self.glyphViewComponentFillColor,
-            strokeColor=self.glyphViewComponentStrokeColor,
-            strokeWidth=.5
-        )
-
-        self.textLayer = self.container.appendTextLineSublayer(
-           backgroundColor=None,
-           text="",
-           fillColor=self.glyphViewMeasurementsTextColor,
-           horizontalAlignment="center"
-        )
         
         self.backgroundLayer.clearSublayers()
         self.glyphLayer.clearSublayers()
         self.bluesLayer.clearSublayers()
         self.handleLayer.clearSublayers()
-        self.measurementLayer.clearSublayers()
         self.linesLayer.clearSublayers()
         self.ovalCurveLayer.clearSublayers()
         self.compLayer.clearSublayers()        
@@ -172,6 +165,11 @@ class ThemeManagerGlyphView(ezui.MerzView):
                 for contour in self.glyph:
                     contourGlyph.appendContour(contour)
                 glyphPath = contourGlyph.getRepresentation("merz.CGPath")
+                self.glyphLayer.setPath(glyphPath)
+                self.glyphLayer.setStrokeColor(self.glyphViewStrokeColor)
+                self.glyphLayer.setFillColor(self.glyphViewAlternateFillColor)
+                self.glyphLayer.setStrokeWidth(self.glyphViewStrokeWidth/2)
+
                 measurementLine = ((59,-19),(254,132))
                 measurements = sorted(IntersectGlyphWithLine(self.glyph,measurementLine))
                 self.drawHandle(measurementLine, self.glyphViewMeasurementsForegroundColor, .5)
@@ -193,7 +191,6 @@ class ThemeManagerGlyphView(ezui.MerzView):
                 distance = round(math.sqrt((measurementLine[0][0]-measurementLine[1][0])**2 + (measurementLine[0][1]-measurementLine[1][1])**2), 2)
                 self.drawCaption(loc, f"{distance}", self.glyphViewMeasurementsTextColor, "top", "center")
 
-                self.glyphLayer.setPath(glyphPath)
                 with self.glyphLayer.sublayerGroup():
                     for contour in self.glyph.contours:
                         allContPoints = [p for p in contour.points]
