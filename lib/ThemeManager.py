@@ -423,11 +423,12 @@ class ThemeManagerWindowController(ezui.WindowController):
         # Read all of the current preferences into a new theme dictionary
         # if holding Shift on +, duplicate the current theme instead of using default
         if AppKit.NSEvent.modifierFlags() & AppKit.NSShiftKeyMask:
-            theme = self.selectedTheme
+            theme = copy(self.selectedTheme)
+            theme["themeName"] = self.findNewThemeName(theme["themeName"])
         else:
             theme = self.getCurrentUserDefaultsAsTheme()
-        # Give the theme a default name
-        theme["themeName"] = self.findNewThemeName()
+            theme["themeName"] = self.findNewThemeName("New Theme")
+
         # Get the loaded items
         userDefinedItems, builtInItems = self.getThemeTableItems()
         item = self.wrapThemeTableItem(theme, themeType="User")
@@ -460,26 +461,32 @@ class ThemeManagerWindowController(ezui.WindowController):
         item = items[0]
         theme = self.unwrapThemeTableItem(item)
         theme = deepcopy(theme)
-        theme["themeName"] = self.findNewThemeName()
+        theme["themeName"] = self.findNewThemeName(theme["themeName"])
         item = self.wrapThemeTableItem(theme, themeType="User")
         userDefinedItems, builtInItems = self.getThemeTableItems()
         userDefinedItems.append(item)
         # self.themes.append(item)
         self.populateThemeTable(userDefinedItems, builtInItems)
 
-    def findNewThemeName(self):
+    def findNewThemeName(self, name):
         userDefinedItems, builtInItems = self.getThemeTableItems()
         names = [theme["themeName"] for theme in userDefinedItems]
         names += [theme["themeName"] for theme in builtInItems]
-        counter = 0
-        while 1:
-            if counter == 0:
-                name = "New Theme"
+        
+        suffix = 0
+        while name in names:
+            try:        
+                val = int(name[-1])
+                suffix = val
+            except ValueError:
+                pass
+            suffix += 1
+            if suffix == 1:
+                name = "%s %d" % (name, suffix)
             else:
-                name = f"New Theme {counter}"
-            if name not in names:
-                return name
-            counter += 1
+                name = "%s %d" % (name[:-2], suffix)
+        return name
+
 
     # import/export
 
@@ -540,7 +547,7 @@ class ThemeManagerWindowController(ezui.WindowController):
         existingNames = [item["themeName"] for item in userDefinedItems + builtInItems]
         if themeName in existingNames:
             validityMessage.append(f"The name '{themeName}' is already used.")
-            themeName = self.findNewThemeName()
+            themeName = self.findNewThemeName(themeName)
         validated["themeName"] = themeName
         item = self.wrapThemeTableItem(validated)
         userDefinedItems.append(item)
