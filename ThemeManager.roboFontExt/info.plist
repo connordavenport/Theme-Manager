@@ -14,22 +14,24 @@
 		</dict>
 	</array>
 	<key>developer</key>
-	<string>Connor Davenport and Andy Clymer</string>
+	<string>Connor Davenport, Andy Clymer, and Tal Leming</string>
 	<key>developerURL</key>
-	<string>http://www.connordavenport.com/ http://www.andyclymer.com/</string>
+	<string>http://www.connordavenport.com/ http://www.andyclymer.com/ https://typesupply.com/</string>
 	<key>html</key>
 	<true/>
 	<key>launchAtStartUp</key>
-	<false/>
+	<true/>
+	<key>mainScript</key>
+	<string>launch.py</string>
 	<key>name</key>
 	<string>Theme Manager</string>
 	<key>requiresVersionMajor</key>
-	<string>3</string>
+	<string>4</string>
 	<key>requiresVersionMinor</key>
 	<string>1</string>
 	<key>timeStamp</key>
-	<real>1673293219.4680619</real>
+	<real>1685627295.1309161</real>
 	<key>version</key>
-	<string>1.0.6</string>
+	<string>2.0.0</string>
 </dict>
 </plist>
