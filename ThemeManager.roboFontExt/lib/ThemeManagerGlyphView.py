@@ -50,9 +50,9 @@ class ThemeManagerGlyphView(ezui.MerzView):
         )
         self.compLayer = self.container.appendPathSublayer(
             fillColor=None,
-            strokeColor=None,
-            strokeWidth=.5
+            strokeColor=None
         )
+
 
         self.textLayer = self.container.appendTextLineSublayer(
            backgroundColor=None,
@@ -146,6 +146,12 @@ class ThemeManagerGlyphView(ezui.MerzView):
                     strokeColor=self.glyphViewStrokeColor,
                     strokeWidth=.5
                 )
+                
+                self.compLayer.appendPathSublayer(
+                    fillColor=self.glyphViewComponentFillColor,
+                    strokeColor=self.glyphViewComponentStrokeColor,
+                    strokeWidth=.5
+                )
 
                 if f.info.postscriptBlueValues:
                     blueValues = list(zip(*[iter(f.info.postscriptBlueValues)] * 2))[0]
@@ -159,6 +165,10 @@ class ThemeManagerGlyphView(ezui.MerzView):
                     #self.compLayer.appendPathSublayer()
                     compPath = f[component.baseGlyph].getRepresentation("merz.CGPath")
                     self.compLayer.setPath(compPath)
+                    self.compLayer.setStrokeColor(self.glyphViewComponentStrokeColor)
+                    self.compLayer.setFillColor(self.glyphViewComponentFillColor)
+                    self.compLayer.setStrokeWidth(self.glyphViewStrokeWidth/2)
+
                 
                 contourGlyph = self.glyph.copy()
                 contourGlyph.clearComponents()

@@ -600,21 +600,21 @@ class ThemeManagerWindowController(ezui.WindowController):
             messageText="This will create an automatic dark mode.",
             informativeText="It will be based on an your default theme, inverted, while attempting to be WCAG complient.",
             buttonTitles=[
-                dict(title="Okay", returnCode="okay"),
+                dict(title="Okay", returnCode="accept"),
                 dict(title="Cancel", returnCode="cancel"),
             ],
             callback=self.showAskResultCallback,
         )
     
     def showAskResultCallback(self, value):
-        if value == "okay":
+        if value == "accept":
             background = contrast.getPercievedColor(contrast.invertColor(self.selectedTheme["glyphViewBackgroundColor"]), contrast.invertColor(self.selectedTheme["glyphViewMarginColor"]))
             for keyName, _, dataType in themeScripter.THEMEKEYS:
                 self.selectedTheme[keyName] = dataType(self.selectedTheme[keyName])
             for keyName, _, dataType in themeScripter.DARKTHEMEKEYS:
                 if dataType == tuple:
                     if keyName in ["glyphViewBackgroundColor.dark", "glyphViewMarginColor.dark"]:
-                        color = contrast.invertColor(self.selectedTheme[keyName])
+                        color = contrast.invertColor(self.selectedTheme[keyName.replace(".dark", "")])
                     else:
                         c = self.selectedTheme[keyName.replace(".dark", "")]
                         ic = contrast.invertColor(c)
