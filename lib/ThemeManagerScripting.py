@@ -18,7 +18,11 @@ importlib.reload(contrast)
 DEFAULTSKEY = "com.andyclymer.themeManager"
 EXTENSIONBUNDLE = ExtensionBundle("ThemeManager")
 
-RENAMEMAP = {"glyphViewOncurvePointsSize":"glyphViewOnCurvePointsSize"}
+RENAMEMAP = {"glyphViewOncurvePointsSize":"glyphViewOnCurvePointsSize",
+             "glyphViewOffCurvePointsFill":"glyphViewOffCurveCubicPointsFill",
+             "glyphViewOffCurveQuadPointsStroke":"glyphViewOffCurveQuadraticPointsStroke",
+            }
+
 # Preference keys and names for the theme settings
 THEMEKEYS = [
     ("glyphViewOnCurvePointsSize", "Oncurve Size", float),
@@ -38,9 +42,17 @@ THEMEKEYS = [
     ("glyphViewCurvePointsStroke", "Curve Point Stroke Color", tuple),
     ("glyphViewTangentPointsFill", "Tangent Fill Color", tuple),
     ("glyphViewTangentPointsStroke", "Tangent Stroke Color", tuple),
-    ("glyphViewOffCurvePointsFill", "Offcurve Fill Color", tuple),
-    ("glyphViewOffCurveCubicPointsStroke", "Offcurve Stroke Color (Cubic Beziers, PostScript)", tuple),
-    ("glyphViewOffCurveQuadPointsStroke", "Offcurve Stroke Color (Quadratic Beziers, TrueType)", tuple),
+    # ("glyphViewOffCurvePointsFill", "Offcurve Fill Color", tuple),
+    # ("glyphViewOffCurveQuadPointsStroke", "Offcurve Stroke Color (Quadratic Beziers, TrueType)", tuple),
+
+    # updated keys
+    ("glyphViewOffCurveCubicPointsFill",       "Offcurve Fill Color (Cubic Beziers, PostScript)",     tuple),
+    ("glyphViewOffCurveCubicPointsStroke",     "Offcurve Stroke Color (Cubic Beziers, PostScript)",   tuple),
+    ("glyphViewOffCurveQuadraticPointsFill",   "Offcurve Fill Color (Quadratic Beziers, TrueType)",   tuple),
+    ("glyphViewOffCurveQuadraticPointsStroke", "Offcurve Stroke Color (Quadratic Beziers, TrueType)", tuple),
+    ("glyphViewOffCurveTrailingPointsFill",    "Trailing Offcurve Fill Color",                        tuple),
+    ("glyphViewOffCurveTrailingPointsStroke",  "Trailing Offcurve Stroke Color",                      tuple),
+
     ("glyphViewSmoothPointStroke", "Smooth Point Color", tuple),
     ("glyphViewComponentFillColor", "Component Fill Color", tuple),
     ("glyphViewComponentStrokeColor", "Component Stroke Color", tuple),
