@@ -2,8 +2,8 @@ name: ThemeManager
 developer: Connor Davenport, Andy Clymer, and Tal Leming
 developerURL: https://programme.tools https://www.andyclymer.com https://typesupply.com
 launchAtStartUp: true
-mainScript: ''
-version: '2.0.2'
+mainScript: 'launch.py'
+version: '2.0.3'
 addToMenu:
 - path: ThemeManager.py
   preferredName: ThemeManager
